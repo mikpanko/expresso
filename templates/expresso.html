@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Expresso</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/expresso.css" rel="stylesheet">
+</head>
+
+<body>
+
+<nav class="navbar navbar-default" role="navigation">
+    <div class="navbar-header">
+        <a class="navbar-brand" href="/">Expresso</a>
+    </div>
+    <div>
+        <ul class="nav navbar-nav">
+            <li id="navbar-about"><a href="/about">About</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <textarea class="form-control text-medium" rows="30" id="text-entry" placeholder="Express yourself here..."></textarea>
+        </div>
+        <div class="col-md-4">
+            <button type="button" class="btn btn-primary btn-lg btn-block" data-loading-text="Analyzing..." id="analyze-text"><span class="glyphicon glyphicon-search"></span> Analyze text</button>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>
