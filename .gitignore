@@ -1,3 +1,5 @@
 expresso-venv
 .idea
 *.pyc
+.env
+.env-local
