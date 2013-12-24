@@ -29,9 +29,9 @@ $(function(){
                     $("#word-count").text(result.word_count.toString());
                     $("#vocabulary-size").text(result.vocabulary_size.toString());
                     $("#sentence-count").text(result.sentence_count.toString());
-                    $("#declarative-ratio").text(Math.round(result.declarative_ratio).toString() + "%");
-                    $("#interrogative-ratio").text(Math.round(result.interrogative_ratio).toString() + "%");
-                    $("#exclamative-ratio").text(Math.round(result.exclamative_ratio).toString() + "%");
+                    $("#declarative-ratio").text(Math.round(result.declarative_ratio * 100).toString() + "%");
+                    $("#interrogative-ratio").text(Math.round(result.interrogative_ratio * 100).toString() + "%");
+                    $("#exclamative-ratio").text(Math.round(result.exclamative_ratio * 100).toString() + "%");
                     $("#results-table").show();
                 },
                 error: function(request, textStatus, error) {
