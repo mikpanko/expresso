@@ -28,9 +28,9 @@ def analyze_text(text):
     # count number of sentences and their types
     data['sentence_count'] = declarative_count + interrogative_count + exclamative_count
     if data['sentence_count']:
-        data['declarative_ratio'] = declarative_count / data['sentence_count']
-        data['interrogative_ratio'] = interrogative_count / data['sentence_count']
-        data['exclamative_ratio'] = exclamative_count / data['sentence_count']
+        data['declarative_ratio'] = declarative_count / data['sentence_count'] * 100
+        data['interrogative_ratio'] = interrogative_count / data['sentence_count'] * 100
+        data['exclamative_ratio'] = exclamative_count / data['sentence_count'] * 100
     else:
         data['declarative_ratio'] = 0
         data['interrogative_ratio'] = 0
