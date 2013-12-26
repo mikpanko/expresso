@@ -7,7 +7,7 @@ from model import db_proxy, Text
 app = Flask(__name__)
 app.config.update(**os.environ)
 
-db = MySQLDatabase(app.config['DATABASE_NAME'], host=app.config['DATABASE_HOST'], port=int(app.config['DATABASE_PORT']), user=app.config['DATABASE_USER'], passwd=app.config['DATABASE_PASSWORD'])
+db = MySQLDatabase(app.config['DATABASE_NAME'], host=app.config['DATABASE_HOST'], port=int(app.config['DATABASE_PORT']), user=app.config['DATABASE_USER'], passwd=app.config['DATABASE_PASSWORD'], threadlocals=True)
 db_proxy.initialize(db)
 db.connect()
 Text.create_table(fail_silently=True)
