@@ -38,7 +38,7 @@ $(function(){
                     $("#results-table").show();
                 },
                 error: function(request, textStatus, error) {
-                    alert("Cannot analyze text!");
+                    alert("Cannot analyze text: " + error);
                 }
             });
         };

@@ -10,7 +10,6 @@ app.config.update(**os.environ)
 db = MySQLDatabase(app.config['DATABASE_NAME'], host=app.config['DATABASE_HOST'], port=int(app.config['DATABASE_PORT']), user=app.config['DATABASE_USER'], passwd=app.config['DATABASE_PASSWORD'])
 db_proxy.initialize(db)
 db.connect()
-
 Text.create_table(fail_silently=True)
 
 
@@ -18,9 +17,11 @@ Text.create_table(fail_silently=True)
 def expresso_route():
     return render_template('expresso.html')
 
+
 @app.route('/about')
 def about_route():
     return render_template('about.html')
+
 
 @app.route('/analyze-text', methods=['POST'])
 def analyze():
@@ -28,6 +29,17 @@ def analyze():
     analyzed_text = analyze_text(text)
     Text.create(**analyzed_text)
     return jsonify(analyzed_text)
+
+
+# @app.before_request
+# def before_request():
+#     db.connect()
+#
+#
+# @app.after_request
+# def after_request(response):
+#     db.close()
+#     return response
 
 
 if __name__ == '__main__':
