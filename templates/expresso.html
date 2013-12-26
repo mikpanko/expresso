@@ -1,65 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <title>Expresso</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/expresso.css" rel="stylesheet">
-    <script type="text/javascript" src="/static/jquery/jquery-1.10.2.min.js"></script>
+{% block javascript %}
     <script type="text/javascript" src="/static/js/expresso.js"></script>
-</head>
+{% endblock %}
 
-<body>
-
-<nav class="navbar navbar-default" role="navigation">
-    <div class="navbar-header">
-        <a class="navbar-brand" href="/">Expresso</a>
-    </div>
-    <div>
-        <ul class="nav navbar-nav">
-            <li id="navbar-about"><a href="/about">About</a></li>
-        </ul>
-    </div>
-</nav>
-
-<div class="container">
-    <div class="row">
-        <div class="col-md-8">
-            <textarea class="form-control text-large" rows="30" id="text-entry" placeholder="Express yourself here..."></textarea>
-        </div>
-        <div class="col-md-4">
-            <button type="button" class="btn btn-primary btn-lg btn-block" data-loading-text="Analyzing..." id="analyze-text"><span class="glyphicon glyphicon-search"></span> Analyze text</button>
-            <table class="table table-bordered table-hover" id="results-table">
-                <tr>
-                    <td>words</td>
-                    <td id="word-count"></td>
-                </tr>
-                <tr>
-                    <td>vocabulary size</td>
-                    <td id="vocabulary-size"></td>
-                </tr>
-                <tr>
-                    <td>sentences</td>
-                    <td id="sentence-count"></td>
-                </tr>
-                <tr>
-                    <td>declarative sentences</td>
-                    <td id="declarative-ratio"></td>
-                </tr>
-                <tr>
-                    <td>interrogative sentences</td>
-                    <td id="interrogative-ratio"></td>
-                </tr>
-                <tr>
-                    <td>exclamative sentences</td>
-                    <td id="exclamative-ratio"></td>
-                </tr>
-            </table>
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <textarea class="form-control text-large" rows="30" id="text-entry" placeholder="Express yourself here..."></textarea>
+            </div>
+            <div class="col-md-4">
+                <button type="button" class="btn btn-primary btn-lg btn-block" data-loading-text="Analyzing..." id="analyze-text"><span class="glyphicon glyphicon-search"></span> Analyze text</button>
+                <table class="table table-bordered table-hover text-medium" id="results-table">
+                    <tr>
+                        <td>words</td>
+                        <td id="word-count"></td>
+                    </tr>
+                    <tr>
+                        <td>vocabulary size</td>
+                        <td id="vocabulary-size"></td>
+                    </tr>
+                    <tr>
+                        <td>sentences</td>
+                        <td id="sentence-count"></td>
+                    </tr>
+                    <tr>
+                        <td>declarative sentences</td>
+                        <td id="declarative-ratio"></td>
+                    </tr>
+                    <tr>
+                        <td>interrogative sentences</td>
+                        <td id="interrogative-ratio"></td>
+                    </tr>
+                    <tr>
+                        <td>exclamative sentences</td>
+                        <td id="exclamative-ratio"></td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </div>
-</div>
-
-</body>
-
-</html>
+{% endblock %}

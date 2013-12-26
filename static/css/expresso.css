@@ -1,4 +1,12 @@
+p, textarea, td {
+   font-family: Georgia !important;
+}
+
 .text-large {
+    font-size: 22px;
+}
+
+.text-medium {
     font-size: 18px;
 }
 

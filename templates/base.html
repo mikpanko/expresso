@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Expresso</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/expresso.css" rel="stylesheet">
+    <script type="text/javascript" src="/static/jquery/jquery-1.10.2.min.js"></script>
+    {% block javascript %}{% endblock %}
+</head>
+
+<body>
+
+<nav class="navbar navbar-default" role="navigation">
+    <div class="navbar-header">
+        <a class="navbar-brand" href="/">Expresso</a>
+    </div>
+    <div>
+        <ul class="nav navbar-nav">
+            <li class="navbar-all" id="navbar-about"><a href="/about">About</a></li>
+        </ul>
+    </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+</body>
+
+</html>

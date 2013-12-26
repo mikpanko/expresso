@@ -15,9 +15,12 @@ Text.create_table(fail_silently=True)
 
 
 @app.route('/')
-def expresso():
+def expresso_route():
     return render_template('expresso.html')
 
+@app.route('/about')
+def about_route():
+    return render_template('about.html')
 
 @app.route('/analyze-text', methods=['POST'])
 def analyze():
