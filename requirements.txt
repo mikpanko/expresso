@@ -6,6 +6,7 @@ PyYAML==3.10
 Werkzeug==0.9.4
 gunicorn==18.0
 itsdangerous==0.23
+newrelic==2.8.0.7
 nltk==2.0.4
 peewee==2.1.7
 wsgiref==0.1.2
