@@ -1,1 +1,1 @@
-web: gunicorn expresso:app
+web: newrelic-admin run-program gunicorn expresso:app
