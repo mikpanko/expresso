@@ -7,5 +7,5 @@ Werkzeug==0.9.4
 gunicorn==18.0
 itsdangerous==0.23
 nltk==2.0.4
-peewee==2.1.6
+peewee==2.1.7
 wsgiref==0.1.2

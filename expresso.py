@@ -2,29 +2,13 @@ from flask import Flask, render_template, request, jsonify
 import os
 from peewee import *
 from text_analysis import analyze_text
+from model import db_proxy, Text
 
 app = Flask(__name__)
-
 app.config.update(**os.environ)
 
-#from model import Text
-
-db = MySQLDatabase(app.config['DATABASE'], user=app.config['USER'], passwd=app.config['PASSWORD'])
-
-
-class Text(Model):
-    text = TextField()
-    word_count = IntegerField()
-    sentence_count = IntegerField()
-    vocabulary_size = IntegerField()
-    declarative_ratio = FloatField()
-    interrogative_ratio = FloatField()
-    exclamative_ratio = FloatField()
-
-    class Meta:
-        database = db
-
-
+db = MySQLDatabase(app.config['DATABASE'], host=app.config['HOST'], port=int(app.config['PORT']), user=app.config['USER'], passwd=app.config['PASSWORD'])
+db_proxy.initialize(db)
 db.connect()
 
 Text.create_table(fail_silently=True)

@@ -1,10 +1,9 @@
 from peewee import *
-import os
 
-db = MySQLDatabase(os.environ['DATABASE'], user=os.environ['USER'], passwd=os.environ['PASSWORD'])
+db_proxy = Proxy()
 
 
-class Text(db.Model):
+class Text(Model):
     text = TextField()
     word_count = IntegerField()
     sentence_count = IntegerField()
@@ -13,7 +12,5 @@ class Text(db.Model):
     interrogative_ratio = FloatField()
     exclamative_ratio = FloatField()
 
-
-db.connect()
-
-Text.create_table(fail_silently=True)
+    class Meta:
+        database = db_proxy
