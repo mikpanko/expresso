@@ -18,6 +18,7 @@ $(function(){
 
         // get text
         var text = $("#text-entry").val();
+        console.log(text)
 
         if (text) {
             // send text to the server
