@@ -14,6 +14,8 @@ $(function(){
     // analyze text and display results
     $("#analyze-text").click(function(){
 
+        $("#analyze-text").blur();
+
         // get text
         var text = $("#text-entry").val();
 
