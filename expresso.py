@@ -21,7 +21,7 @@ def about_route():
 @app.route('/analyze-text', methods=['POST'])
 def analyze():
     text = request.form.get('text', '')
-    analyzed_text = analyze_text(text)
+    analyzed_text = analyze_text(text, app)
     Text.create(**analyzed_text)
     return jsonify(analyzed_text)
 
