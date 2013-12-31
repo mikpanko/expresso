@@ -14,7 +14,7 @@ def analyze_text(text, app):
 
     # separate sentences at new line characters correctly
     sents_draft_2 = []
-    newline_re = re.compile('\n{1,}')
+    newline_re = re.compile('\n+')
     for sent in sents_draft:
         idx = 0
         for newline_case in newline_re.finditer(sent):
@@ -24,7 +24,7 @@ def analyze_text(text, app):
 
     # separate sentences at ellipsis characters correctly
     sents = []
-    ellipsis_re = re.compile('\.\.\.["\u201C\u201D ]{1,}[A-Z]')
+    ellipsis_re = re.compile('\.\.\.["\u201C\u201D ]+[A-Z]')
     for sent in sents_draft_2:
         idx = 0
         for ellipsis_case in ellipsis_re.finditer(sent):
