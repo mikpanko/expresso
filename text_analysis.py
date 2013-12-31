@@ -1,7 +1,6 @@
 from __future__ import division
 import nltk
 import re
-import itertools
 
 
 def analyze_text(text, app):
@@ -49,11 +48,9 @@ def analyze_text(text, app):
     app.logger.debug('%s', sents_tokens)
 
     # find words
-    sents_words = []
-    for sent in sents_tokens:
-        sents_words.append([token.lower() for token in sent if token[0].isalnum()])
+    sents_words = [[token.lower() for token in sent if token[0].isalnum()] for sent in sents_tokens]
     app.logger.debug('%s', sents_words)
-    words = list(itertools.chain.from_iterable(sents_words))
+    words = [word for sent in sents_words for word in sent]
 
     # find word stems
     stemmer = nltk.PorterStemmer()
@@ -75,7 +72,7 @@ def analyze_text(text, app):
     sents_end_punct = []
     for sent in sents_tokens:
         sents_end_punct.append('')
-        for token in sent[::-1]:
+        for token in reversed(sent):
             if token in ['.', '...', '?', '!']:
                 sents_end_punct[-1] = token
             elif token[0].isalnum():
@@ -85,9 +82,7 @@ def analyze_text(text, app):
         data['interrogative_ratio'] = sents_end_punct.count('?') / data['sentence_count']
         data['exclamative_ratio'] = sents_end_punct.count('!') / data['sentence_count']
     else:
-        data['declarative_ratio'] = 0
-        data['interrogative_ratio'] = 0
-        data['exclamative_ratio'] = 0
+        data['declarative_ratio'] = data['interrogative_ratio'] = data['exclamative_ratio'] = 0
 
     # count number of words
     data['word_count'] = len(words)
