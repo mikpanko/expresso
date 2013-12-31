@@ -20,8 +20,8 @@ def analyze_text(text, app):
             sents.append(sent[idx:(ellipsis_case.start()+3)])
             idx = ellipsis_case.start()+3
         sents.append(sent[idx:])
-    for idx, sent in enumerate(sents[:-1]):
-        if (sent.count('"') + sent.count('\u201C') + sent.count('\u201D')) % 2 == 1:
+    for idx in range(len(sents[:-1])):
+        if (sents[idx].count('"') + sents[idx].count('\u201C') + sents[idx].count('\u201D')) % 2 == 1:
             if sents[idx+1][0] in '"\u201C\u201D':
                 sents[idx] += sents[idx+1][0]
                 sents[idx+1] = sents[idx+1][1:]
