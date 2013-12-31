@@ -1,5 +1,7 @@
 from __future__ import division
 import nltk
+import re
+import itertools
 
 
 def analyze_text(text, app):
@@ -7,31 +9,56 @@ def analyze_text(text, app):
     # load json with data into a python dictionary
     data = {'text': text}
 
-    # extract text tokens (words and punctuation)
-    tokens = nltk.wordpunct_tokenize(data['text'])
-    sents = nltk.sent_tokenize(data['text'])
-    sents = [sent for sent in sents if (sent not in ['!', '?'])]
-    words = [word.lower() for word in tokens if word[0].isalnum()]
+    # extract text tokens: sentences, words and punctuation
+    sents_draft = nltk.sent_tokenize(data['text'])
+    app.logger.debug('%s', sents_draft)
+    sents = []
+    ellipsis_re = re.compile('\.\.\.["\u201C\u201D ]{1,}[A-Z]')
+    for sent in sents_draft:
+        idx = 0
+        for ellipsis_case in ellipsis_re.finditer(sent):
+            sents.append(sent[idx:(ellipsis_case.start()+3)])
+            idx = ellipsis_case.start()+3
+        sents.append(sent[idx:])
+    for idx, sent in enumerate(sents[:-1]):
+        if (sent.count('"') + sent.count('\u201C') + sent.count('\u201D')) % 2 == 1:
+            if sents[idx+1][0] in '"\u201C\u201D':
+                sents[idx] += sents[idx+1][0]
+                sents[idx+1] = sents[idx+1][1:]
+    sents = [sent for sent in sents if (sent not in '!?"\u201C\u201D')]
+    app.logger.debug('%s', sents)
+    sents_tokens = [nltk.word_tokenize(sent) for sent in sents]
+    app.logger.debug('%s', sents_tokens)
+    sents_words = []
+    for sent in sents_tokens:
+        sents_words.append([token.lower() for token in sent if token[0].isalnum()])
+    app.logger.debug('%s', sents_words)
+    words = list(itertools.chain.from_iterable(sents_words))
 
-    # count word frequencies
-    #word_freq_dist = FreqDist(words)
-
-    # count number of sentences and their types
-    declarative_count = 0
-    interrogative_count = 0
-    exclamative_count = 0
-    for sent in sents:
-        if sent[-1] == '.':
-            declarative_count += 1
-        elif sent[-1] == '?':
-            interrogative_count += 1
-        elif sent[-1] == '!':
-            exclamative_count += 1
+    # count number of sentences
     data['sentence_count'] = len(sents)
+
+    # count sentence lengths
+    sents_length = [len(sent) for sent in sents_words]
+    app.logger.debug('%s', sents_length)
+    if len(sents_length):
+        data['sentence_length'] = sum(sents_length) / len(sents_length)
+    else:
+        data['sentence_length'] = 0
+
+    # count sentence types
+    sents_end_punct = []
+    for sent in sents_tokens:
+        sents_end_punct.append('')
+        for token in sent[::-1]:
+            if token in ['.', '...', '?', '!']:
+                sents_end_punct[-1] = token
+            elif token[0].isalnum():
+                break
     if data['sentence_count']:
-        data['declarative_ratio'] = declarative_count / data['sentence_count']
-        data['interrogative_ratio'] = interrogative_count / data['sentence_count']
-        data['exclamative_ratio'] = exclamative_count / data['sentence_count']
+        data['declarative_ratio'] = (sents_end_punct.count('.') + sents_end_punct.count('...')) / data['sentence_count']
+        data['interrogative_ratio'] = sents_end_punct.count('?') / data['sentence_count']
+        data['exclamative_ratio'] = sents_end_punct.count('!') / data['sentence_count']
     else:
         data['declarative_ratio'] = 0
         data['interrogative_ratio'] = 0
@@ -39,6 +66,9 @@ def analyze_text(text, app):
 
     # count number of words
     data['word_count'] = len(words)
+
+    # count word frequencies
+    #word_freq_dist = nltk.FreqDist(words)
 
     # find vocabulary size
     data['vocabulary_size'] = len(set(words))

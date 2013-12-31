@@ -7,6 +7,7 @@ class Text(Model):
     text = TextField()
     word_count = IntegerField()
     sentence_count = IntegerField()
+    sentence_length = FloatField()
     vocabulary_size = IntegerField()
     declarative_ratio = FloatField()
     interrogative_ratio = FloatField()
