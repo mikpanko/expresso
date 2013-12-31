@@ -15,6 +15,10 @@ $(function(){
     $("#analyze-text").click(function(){
 
         $("#analyze-text").blur();
+        $("#analyze-text").button('loading');
+
+        // hide results table
+        $("#results-table").hide();
 
         // get text
         var text = $("#text-entry").val();
@@ -40,6 +44,7 @@ $(function(){
                     $("#interrogative-ratio").text(Math.round(result.interrogative_ratio * 100).toString() + "%");
                     $("#exclamative-ratio").text(Math.round(result.exclamative_ratio * 100).toString() + "%");
                     $("#results-table").show();
+                    $("#analyze-text").button('reset');
                 },
                 error: function(request, textStatus, error) {
                     alert("Cannot analyze text: " + error);
