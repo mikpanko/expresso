@@ -9,31 +9,53 @@ def analyze_text(text, app):
     # load json with data into a python dictionary
     data = {'text': text}
 
-    # extract text tokens: sentences, words, stems and punctuation
+    # tokenize text into sentences
     sents_draft = nltk.sent_tokenize(data['text'])
     app.logger.debug('%s', sents_draft)
+
+    # separate sentences at new line characters correctly
+    sents_draft_2 = []
+    newline_re = re.compile('\n{1,}')
+    for sent in sents_draft:
+        idx = 0
+        for newline_case in newline_re.finditer(sent):
+            sents_draft_2.append(sent[idx:newline_case.start()])
+            idx = newline_case.end()
+        sents_draft_2.append(sent[idx:])
+
+    # separate sentences at ellipsis characters correctly
     sents = []
     ellipsis_re = re.compile('\.\.\.["\u201C\u201D ]{1,}[A-Z]')
-    for sent in sents_draft:
+    for sent in sents_draft_2:
         idx = 0
         for ellipsis_case in ellipsis_re.finditer(sent):
             sents.append(sent[idx:(ellipsis_case.start()+3)])
             idx = ellipsis_case.start()+3
         sents.append(sent[idx:])
+
+    # move closing quotation marks to the sentence they belong
     for idx in range(len(sents[:-1])):
         if (sents[idx].count('"') + sents[idx].count('\u201C') + sents[idx].count('\u201D')) % 2 == 1:
             if sents[idx+1][0] in '"\u201C\u201D':
                 sents[idx] += sents[idx+1][0]
                 sents[idx+1] = sents[idx+1][1:]
+
+    # delete sentences consisting only of punctuation marks
     sents = [sent for sent in sents if (sent not in '!?"\u201C\u201D')]
     app.logger.debug('%s', sents)
+
+    # tokenize sentences into words and punctuation marks
     sents_tokens = [nltk.word_tokenize(sent) for sent in sents]
     app.logger.debug('%s', sents_tokens)
+
+    # find words
     sents_words = []
     for sent in sents_tokens:
         sents_words.append([token.lower() for token in sent if token[0].isalnum()])
     app.logger.debug('%s', sents_words)
     words = list(itertools.chain.from_iterable(sents_words))
+
+    # find word stems
     stemmer = nltk.PorterStemmer()
     stems = [stemmer.stem(word) for word in words]
     app.logger.debug('%s', stems)
