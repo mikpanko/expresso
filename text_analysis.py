@@ -9,7 +9,7 @@ def analyze_text(text, app):
     # load json with data into a python dictionary
     data = {'text': text}
 
-    # extract text tokens: sentences, words and punctuation
+    # extract text tokens: sentences, words, stems and punctuation
     sents_draft = nltk.sent_tokenize(data['text'])
     app.logger.debug('%s', sents_draft)
     sents = []
@@ -34,6 +34,9 @@ def analyze_text(text, app):
         sents_words.append([token.lower() for token in sent if token[0].isalnum()])
     app.logger.debug('%s', sents_words)
     words = list(itertools.chain.from_iterable(sents_words))
+    stemmer = nltk.PorterStemmer()
+    stems = [stemmer.stem(word) for word in words]
+    app.logger.debug('%s', stems)
 
     # count number of sentences
     data['sentence_count'] = len(sents)
@@ -68,9 +71,9 @@ def analyze_text(text, app):
     data['word_count'] = len(words)
 
     # count word frequencies
-    #word_freq_dist = nltk.FreqDist(words)
+    #word_freq_dist = nltk.FreqDist(stems)
 
     # find vocabulary size
-    data['vocabulary_size'] = len(set(words))
+    data['vocabulary_size'] = len(set(stems))
 
     return data
