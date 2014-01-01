@@ -106,7 +106,7 @@ def analyze_text(text, app):
     sorted_word_freq.reverse()
     sorted_word_freq = [word for word in sorted_word_freq if (word[1] > 1) and (word[0] not in stopset)]
     sorted_word_freq = sorted_word_freq[:min(len(sorted_word_freq), 10)]
-    sorted_word_freq = reduce(lambda x, y: x + '"' + y[0] + '": ' + str(y[1]) + '<br>', sorted_word_freq, '')
+    sorted_word_freq = reduce(lambda x, y: x + y[0] + ' (' + str(y[1]) + ')<br>', sorted_word_freq, '')
     data['word_freq'] = sorted_word_freq[:-4]
 
     # prepare string displaying bigram frequencies
@@ -114,7 +114,7 @@ def analyze_text(text, app):
     sorted_bigram_freq.reverse()
     sorted_bigram_freq = [bigram for bigram in sorted_bigram_freq if (bigram[1] > 1) and (bigram[0][0] not in stopset) and (bigram[0][1] not in stopset)]
     sorted_bigram_freq = sorted_bigram_freq[:min(len(sorted_bigram_freq), 10)]
-    sorted_bigram_freq = reduce(lambda x, y: x + '"' + y[0][0] + ' ' + y[0][1] + '": ' + str(y[1]) + '<br>', sorted_bigram_freq, '')
+    sorted_bigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' (' + str(y[1]) + ')<br>', sorted_bigram_freq, '')
     data['bigram_freq'] = sorted_bigram_freq[:-4]
 
     # prepare string displaying trigram frequencies
@@ -122,7 +122,7 @@ def analyze_text(text, app):
     sorted_trigram_freq.reverse()
     sorted_trigram_freq = [trigram for trigram in sorted_trigram_freq if trigram[1] > 1]
     sorted_trigram_freq = sorted_trigram_freq[:min(len(trigram_freq), 10)]
-    sorted_trigram_freq = reduce(lambda x, y: x + '"' + y[0][0] + ' ' + y[0][1] + ' ' + y[0][2] + '": ' + str(y[1]) + '<br>', sorted_trigram_freq, '')
+    sorted_trigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' ' + y[0][2] + ' (' + str(y[1]) + ')<br>', sorted_trigram_freq, '')
     data['trigram_freq'] = sorted_trigram_freq[:-4]
 
     return data
