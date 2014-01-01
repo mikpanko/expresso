@@ -44,9 +44,9 @@ $(function(){
                     $("#interrogative-ratio").text(Math.round(result.interrogative_ratio * 100).toString() + "%");
                     $("#exclamative-ratio").text(Math.round(result.exclamative_ratio * 100).toString() + "%");
                     $("#stopword-ratio").text(Math.round(result.stopword_ratio * 100).toString() + "%");
-                    $("#word-freq").text(result.word_freq);
-                    $("#bigram-freq").text(result.bigram_freq);
-                    $("#trigram-freq").text(result.trigram_freq);
+                    $("#word-freq").html(result.word_freq);
+                    $("#bigram-freq").html(result.bigram_freq);
+                    $("#trigram-freq").html(result.trigram_freq);
                     $("#results-table").show();
                     $("#analyze-text").button('reset');
                 },
