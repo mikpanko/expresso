@@ -3,3 +3,4 @@ expresso-venv
 *.pyc
 .env
 .env-local
+.DS_Store
