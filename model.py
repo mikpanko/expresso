@@ -12,6 +12,10 @@ class Text(Model):
     declarative_ratio = FloatField()
     interrogative_ratio = FloatField()
     exclamative_ratio = FloatField()
+    stopword_ratio = FloatField()
+    word_freq = TextField()
+    bigram_freq = TextField()
+    trigram_freq = TextField()
 
     class Meta:
         database = db_proxy

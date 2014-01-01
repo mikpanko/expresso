@@ -1,6 +1,7 @@
 from __future__ import division
 import nltk
 import re
+import operator
 
 
 def analyze_text(text, app):
@@ -87,10 +88,37 @@ def analyze_text(text, app):
     # count number of words
     data['word_count'] = len(words)
 
-    # count word frequencies
-    #word_freq_dist = nltk.FreqDist(stems)
-
     # find vocabulary size
     data['vocabulary_size'] = len(set(stems))
+
+    # count number of stopwords
+    stopset = set(nltk.corpus.stopwords.words('english'))
+    data['stopword_ratio'] = reduce(lambda x, y: x + (y in stopset), words, 0) / data['word_count']
+
+    # count word, bigram, and trigram frequencies
+    bcf = nltk.TrigramCollocationFinder.from_words(stems)
+    #bcf.apply_word_filter(lambda w: w in stopset)
+    word_freq = bcf.word_fd
+    bigram_freq = bcf.bigram_fd
+    trigram_freq = bcf.ngram_fd
+    n = 10
+    sorted_word_freq = sorted(word_freq.iteritems(), key=operator.itemgetter(1))
+    sorted_word_freq.reverse()
+    sorted_word_freq = sorted_word_freq[:min(len(word_freq), n)]
+    data['word_freq'] = str(sorted_word_freq)
+    bigram_freq_2 = {}
+    for key, val in bigram_freq.iteritems():
+        bigram_freq_2[' '.join(key)] = val
+    sorted_bigram_freq = sorted(bigram_freq_2.iteritems(), key=operator.itemgetter(1))
+    sorted_bigram_freq.reverse()
+    sorted_bigram_freq = sorted_bigram_freq[:min(len(bigram_freq), n)]
+    data['bigram_freq'] = str(sorted_bigram_freq)
+    trigram_freq_2 = {}
+    for key, val in trigram_freq.iteritems():
+        trigram_freq_2[' '.join(key)] = val
+    sorted_trigram_freq = sorted(trigram_freq_2.iteritems(), key=operator.itemgetter(1))
+    sorted_trigram_freq.reverse()
+    sorted_trigram_freq = sorted_trigram_freq[:min(len(trigram_freq), n)]
+    data['trigram_freq'] = str(sorted_trigram_freq)
 
     return data
