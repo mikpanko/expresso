@@ -3,6 +3,12 @@ import nltk
 import re
 import operator
 
+newline_re = re.compile('\n+')
+ellipsis_re = re.compile('\.\.\.["\u201C\u201D ]+[A-Z]')
+stopset = set(nltk.corpus.stopwords.words('english'))
+stemmer = nltk.PorterStemmer()
+cmudict = nltk.corpus.cmudict.dict()
+
 
 def analyze_text(text, app):
 
@@ -15,7 +21,6 @@ def analyze_text(text, app):
 
     # separate sentences at new line characters correctly
     sents_draft_2 = []
-    newline_re = re.compile('\n+')
     for sent in sents_draft:
         idx = 0
         for newline_case in newline_re.finditer(sent):
@@ -25,7 +30,6 @@ def analyze_text(text, app):
 
     # separate sentences at ellipsis characters correctly
     sents = []
-    ellipsis_re = re.compile('\.\.\.["\u201C\u201D ]+[A-Z]')
     for sent in sents_draft_2:
         idx = 0
         for ellipsis_case in ellipsis_re.finditer(sent):
@@ -54,7 +58,6 @@ def analyze_text(text, app):
     words = [word for sent in sents_words for word in sent]
 
     # find word stems
-    stemmer = nltk.PorterStemmer()
     stems = [stemmer.stem(word) for word in words]
     app.logger.debug('%s', stems)
 
@@ -65,9 +68,9 @@ def analyze_text(text, app):
     sents_length = [len(sent) for sent in sents_words]
     app.logger.debug('%s', sents_length)
     if len(sents_length):
-        data['sentence_length'] = sum(sents_length) / len(sents_length)
+        data['words_per_sentence'] = sum(sents_length) / len(sents_length)
     else:
-        data['sentence_length'] = 0
+        data['words_per_sentence'] = 0
 
     # count sentence types
     sents_end_punct = []
@@ -92,8 +95,23 @@ def analyze_text(text, app):
     data['vocabulary_size'] = len(set(stems))
 
     # count number of stopwords
-    stopset = set(nltk.corpus.stopwords.words('english'))
     data['stopword_ratio'] = reduce(lambda x, y: x + (y in stopset), words, 0) / data['word_count']
+
+    # count number of syllables per word
+    cmu_words_count = 0
+    cmu_syllables_count = 0
+    for word in words:
+        if word in cmudict:
+            cmu_words_count += 1
+            cmu_syllables_count += len([phoneme for phoneme in cmudict[word][0] if phoneme[-1].isdigit()])
+    data['syllables_per_word'] = cmu_syllables_count / cmu_words_count
+
+    # count number of characters per word
+    char_count = [len(word) for word in words]
+    data['characters_per_word'] = sum(char_count) / data['word_count']
+
+    # estimate test readability using Flesch-Kincaid Grade Level test
+    data['readability'] = 0.39 * data['words_per_sentence'] + 11.8 * data['syllables_per_word'] - 15.59
 
     # count word, bigram, and trigram frequencies
     bcf = nltk.TrigramCollocationFinder.from_words(stems)
