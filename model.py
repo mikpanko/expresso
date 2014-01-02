@@ -5,6 +5,7 @@ db_proxy = Proxy()
 
 class Text(Model):
     text = TextField()
+    timestamp = DateTimeField()
     character_count = IntegerField()
     word_count = IntegerField()
     sentence_count = IntegerField()

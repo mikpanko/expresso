@@ -2,6 +2,7 @@ from __future__ import division
 import nltk
 import re
 import operator
+from datetime import datetime
 
 newline_re = re.compile('\n+')
 ellipsis_re = re.compile('\.\.\.["\u201C\u201D ]+[A-Z]')
@@ -13,7 +14,10 @@ cmudict = nltk.corpus.cmudict.dict()
 def analyze_text(text, app):
 
     # load json with data into a python dictionary
-    data = {'text': text}
+    data = dict(text=text)
+
+    # add date and time
+    data['timestamp'] = datetime.now().replace(microsecond=0)
 
     # tokenize text into sentences
     sents_draft = nltk.sent_tokenize(data['text'])
