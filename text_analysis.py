@@ -64,7 +64,7 @@ def analyze_text(text, app):
     # count number of sentences
     data['sentence_count'] = len(sents)
 
-    # count sentence lengths
+    # count words per sentence
     sents_length = [len(sent) for sent in sents_words]
     app.logger.debug('%s', sents_length)
     if len(sents_length):
@@ -87,6 +87,9 @@ def analyze_text(text, app):
         data['exclamative_ratio'] = sents_end_punct.count('!') / data['sentence_count']
     else:
         data['declarative_ratio'] = data['interrogative_ratio'] = data['exclamative_ratio'] = 0
+
+    # count number of characters in text
+    data['character_count'] = len(data['text'])
 
     # count number of words
     data['word_count'] = len(words)

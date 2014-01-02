@@ -36,6 +36,7 @@ $(function(){
                 success: function(result, textStatus, error) {
                     // display analysis results
                     console.log(result);
+                    $("#character-count").text(result.character_count.toString());
                     $("#word-count").text(result.word_count.toString());
                     $("#vocabulary-size").text(result.vocabulary_size.toString());
                     $("#sentence-count").text(result.sentence_count.toString());
