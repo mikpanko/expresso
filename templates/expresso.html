@@ -2,15 +2,14 @@
 
 {% block javascript %}
     <script type="text/javascript" src="/static/js/expresso.js"></script>
-    <script type="text/javascript" src="/static/autosize/jquery.autosize.min.js"></script>
 {% endblock %}
 
 {% block content %}
     <div class="container">
         <div class="row">
             <div class="col-md-8">
-                <textarea class="form-control text-large" rows="10" id="text-entry"
-                          placeholder="Express yourself here..."></textarea>
+                <div class="text-large" id="text-entry" data-placeholder="Express yourself here..."
+                     contenteditable="true">This is a <span class="highlighted">test</span>.</div>
             </div>
             <div class="col-md-4">
                 <button type="button" class="btn btn-primary btn-lg btn-block" data-loading-text="Analyzing..."

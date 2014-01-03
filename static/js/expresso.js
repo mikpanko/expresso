@@ -1,7 +1,7 @@
 $(function(){
 
     // run at start
-    $(document).ready(function(){
+    $(document).ready(function() {
 
         // set navigation bar
         $(".navbar-all").removeClass("active");
@@ -9,24 +9,40 @@ $(function(){
         // hide results table
         $("#results-table").hide();
 
-        // put textarea into autoresize mode
-        $("#text-entry").autosize({append: "\n"});
-
     });
 
     // get rid of active state on the mobile menu button
-    $(".navbar-toggle").click(function(){
+    $(".navbar-toggle").click(function() {
         $(".navbar-toggle").blur();
     });
 
+    // handle pasting text into text entry field properly (strip formatting)
+    $("#text-entry").on("paste", function() {
+        var el = $(this);
+        setTimeout(function() {
+            //var text = el.html();
+            //text = text.replace(/<div[^>]*>/mgi, '\n').replace(/<\/div[^>]*>/mgi, '')
+            //           .replace(/<span[^>]*>/mgi, '').replace(/<\/span[^>]*>/mgi, '')
+            //           .replace(/<br[^>]*>/mgi, '').replace(/<\/br[^>]*>/mgi, '');
+            //el.html(text);
+            var text = $("div,p,br", el).after("\n").text();
+            text = text.replace(/\n/, '<br>');
+            el.html(text);
+        }, 1000);
+    });
+
     // analyze text and display results
-    $("#analyze-text").click(function(){
+    $("#analyze-text").click(function() {
 
         // get rid of active state on the analysis button
         $("#analyze-text").blur();
 
         // get text
-        var text = $("#text-entry").val();
+        var text = $("#text-entry").html();
+        text = text.replace(/<div[^>]*>/mgi, '\n').replace(/<\/div[^>]*>/mgi, '')
+                   .replace(/<span[^>]*>/mgi, '').replace(/<\/span[^>]*>/mgi, '')
+                   .replace(/<br[^>]*>/mgi, '').replace(/<\/br[^>]*>/mgi, '');
+        console.log(text);
 
         if (text) {
 

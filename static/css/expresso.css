@@ -1,13 +1,18 @@
-p, textarea, td {
+p, td {
     font-family: 'Georgia' !important;
 }
 
 .text-large {
     font-size: 22px;
+    font-family: 'Georgia' !important;
 }
 
 .text-medium {
     font-size: 18px;
+}
+
+.highlighted {
+    background-color: #ffff00;
 }
 
 #analyze-text {
@@ -15,8 +20,7 @@ p, textarea, td {
 }
 
 #text-entry {
-    -webkit-transition: height 0.2s;
-    -moz-transition: height 0.2s;
-    transition: height 0.2s;
     margin-bottom: 50px;
+    min-height: 200px;
+    /*outline: none;*/
 }
