@@ -12,7 +12,6 @@ cmudict = nltk.corpus.cmudict.dict()
 
 
 def analyze_text(text, app):
-
     # load json with data into a python dictionary
     data = dict(text=text)
 
@@ -37,16 +36,16 @@ def analyze_text(text, app):
     for sent in sents_draft_2:
         idx = 0
         for ellipsis_case in ellipsis_re.finditer(sent):
-            sents.append(sent[idx:(ellipsis_case.start()+3)])
-            idx = ellipsis_case.start()+3
+            sents.append(sent[idx:(ellipsis_case.start() + 3)])
+            idx = ellipsis_case.start() + 3
         sents.append(sent[idx:])
 
     # move closing quotation marks to the sentence they belong
     for idx in range(len(sents[:-1])):
         if (sents[idx].count('"') + sents[idx].count('\u201C') + sents[idx].count('\u201D')) % 2 == 1:
-            if sents[idx+1][0] in '"\u201C\u201D':
-                sents[idx] += sents[idx+1][0]
-                sents[idx+1] = sents[idx+1][1:]
+            if sents[idx + 1][0] in '"\u201C\u201D':
+                sents[idx] += sents[idx + 1][0]
+                sents[idx + 1] = sents[idx + 1][1:]
 
     # delete sentences consisting only of punctuation marks
     sents = [sent for sent in sents if (sent not in '!?"\u201C\u201D')]
@@ -166,7 +165,8 @@ def analyze_text(text, app):
         data['adjective_ratio'] = adjective_count / data['word_count']
         data['adverb_ratio'] = adverb_count / data['word_count']
         data['determiner_ratio'] = determiner_count / data['word_count']
-        data['other_pos_ratio'] = 1 - data['noun_ratio'] - data['pronoun_ratio'] - data['verb_ratio'] - data['adjective_ratio'] - data['adverb_ratio'] - data['determiner_ratio']
+        data['other_pos_ratio'] = 1 - data['noun_ratio'] - data['pronoun_ratio'] - data['verb_ratio'] \
+                                    - data['adjective_ratio'] - data['adverb_ratio'] - data['determiner_ratio']
     else:
         data['noun_ratio'] = 0
         data['pronoun_ratio'] = 0
@@ -193,9 +193,11 @@ def analyze_text(text, app):
     # prepare string displaying bigram frequencies
     sorted_bigram_freq = sorted(bigram_freq.iteritems(), key=operator.itemgetter(1))
     sorted_bigram_freq.reverse()
-    sorted_bigram_freq = [bigram for bigram in sorted_bigram_freq if (bigram[1] > 1) and (bigram[0][0] not in stopset) and (bigram[0][1] not in stopset)]
+    sorted_bigram_freq = [bigram for bigram in sorted_bigram_freq if
+                          (bigram[1] > 1) and (bigram[0][0] not in stopset) and (bigram[0][1] not in stopset)]
     sorted_bigram_freq = sorted_bigram_freq[:min(len(sorted_bigram_freq), 10)]
-    sorted_bigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' (' + str(y[1]) + ')<br>', sorted_bigram_freq, '')
+    sorted_bigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' (' + str(y[1]) + ')<br>',
+                                sorted_bigram_freq, '')
     data['bigram_freq'] = sorted_bigram_freq[:-4]
 
     # prepare string displaying trigram frequencies
@@ -203,7 +205,8 @@ def analyze_text(text, app):
     sorted_trigram_freq.reverse()
     sorted_trigram_freq = [trigram for trigram in sorted_trigram_freq if trigram[1] > 1]
     sorted_trigram_freq = sorted_trigram_freq[:min(len(trigram_freq), 10)]
-    sorted_trigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' ' + y[0][2] + ' (' + str(y[1]) + ')<br>', sorted_trigram_freq, '')
+    sorted_trigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' ' + y[0][2] + ' (' + str(y[1]) + ')<br>',
+                                 sorted_trigram_freq, '')
     data['trigram_freq'] = sorted_trigram_freq[:-4]
 
     return data

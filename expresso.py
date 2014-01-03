@@ -28,7 +28,11 @@ def analyze():
 
 @app.before_request
 def before_request():
-    g.db = MySQLDatabase(app.config['DATABASE_NAME'], host=app.config['DATABASE_HOST'], port=int(app.config['DATABASE_PORT']), user=app.config['DATABASE_USER'], passwd=app.config['DATABASE_PASSWORD'])
+    g.db = MySQLDatabase(app.config['DATABASE_NAME'],
+                         host=app.config['DATABASE_HOST'],
+                         port=int(app.config['DATABASE_PORT']),
+                         user=app.config['DATABASE_USER'],
+                         passwd=app.config['DATABASE_PASSWORD'])
     db_proxy.initialize(g.db)
     g.db.connect()
     Text.create_table(fail_silently=True)
