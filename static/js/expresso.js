@@ -14,6 +14,11 @@ $(function(){
 
     });
 
+    // get rid of active state on the mobile menu button
+    $(".navbar-toggle").click(function(){
+        $(".navbar-toggle").blur();
+    });
+
     // analyze text and display results
     $("#analyze-text").click(function(){
 
