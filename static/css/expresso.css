@@ -10,8 +10,8 @@ p, textarea, td {
     font-size: 18px;
 }
 
-#results-table {
-    margin-top: 50px;
+#analyze-text {
+    margin-bottom: 50px;
 }
 
 #text-entry {
