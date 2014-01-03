@@ -42,10 +42,10 @@ $(function(){
                     $("#vocabulary-size").text(result.vocabulary_size.toString());
                     $("#sentence-count").text(result.sentence_count.toString());
                     $("#words-per-sentence").text((Math.round(result.words_per_sentence * 10) / 10).toString());
-                    $("#declarative-ratio").text(Math.round(result.declarative_ratio * 100).toString() + "%");
-                    $("#interrogative-ratio").text(Math.round(result.interrogative_ratio * 100).toString() + "%");
-                    $("#exclamative-ratio").text(Math.round(result.exclamative_ratio * 100).toString() + "%");
-                    $("#stopword-ratio").text(Math.round(result.stopword_ratio * 100).toString() + "%");
+                    $("#declarative-ratio").text((Math.round(result.declarative_ratio * 1000) / 10).toString() + "%");
+                    $("#interrogative-ratio").text((Math.round(result.interrogative_ratio * 1000) / 10).toString() + "%");
+                    $("#exclamative-ratio").text((Math.round(result.exclamative_ratio * 1000) / 10).toString() + "%");
+                    $("#stopword-ratio").text((Math.round(result.stopword_ratio * 1000) / 10).toString() + "%");
                     $("#syllables-per-word").text((Math.round(result.syllables_per_word * 10) / 10).toString());
                     $("#characters-per-word").text((Math.round(result.characters_per_word * 10) / 10).toString());
                     $("#readability").text((Math.round(result.readability * 10) / 10).toString());
