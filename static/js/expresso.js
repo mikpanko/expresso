@@ -14,17 +14,18 @@ $(function(){
     // analyze text and display results
     $("#analyze-text").click(function(){
 
+        // get rid of active state on the analysis button
         $("#analyze-text").blur();
-        $("#analyze-text").button('loading');
-
-        // hide results table
-        $("#results-table").hide();
 
         // get text
         var text = $("#text-entry").val();
-        console.log(text)
 
         if (text) {
+
+            // put UI in analyzing mode
+            $("#analyze-text").button('loading');
+            $("#results-table").hide();
+
             // send text to the server
             $.ajax({
                 type: "POST",
@@ -48,6 +49,13 @@ $(function(){
                     $("#syllables-per-word").text((Math.round(result.syllables_per_word * 10) / 10).toString());
                     $("#characters-per-word").text((Math.round(result.characters_per_word * 10) / 10).toString());
                     $("#readability").text((Math.round(result.readability * 10) / 10).toString());
+                    $("#noun-ratio").text((Math.round(result.noun_ratio * 1000) / 10).toString() + "%");
+                    $("#pronoun-ratio").text((Math.round(result.pronoun_ratio * 1000) / 10).toString() + "%");
+                    $("#verb-ratio").text((Math.round(result.verb_ratio * 1000) / 10).toString() + "%");
+                    $("#adjective-ratio").text((Math.round(result.adjective_ratio * 1000) / 10).toString() + "%");
+                    $("#adverb-ratio").text((Math.round(result.adverb_ratio * 1000) / 10).toString() + "%");
+                    $("#determiner-ratio").text((Math.round(result.determiner_ratio * 1000) / 10).toString() + "%");
+                    $("#other-pos-ratio").text((Math.round(result.other_pos_ratio * 1000) / 10).toString() + "%");
                     $("#word-freq").html(result.word_freq);
                     $("#bigram-freq").html(result.bigram_freq);
                     $("#trigram-freq").html(result.trigram_freq);

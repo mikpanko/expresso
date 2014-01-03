@@ -65,6 +65,9 @@ def analyze_text(text, app):
     stems = [stemmer.stem(word) for word in words]
     app.logger.debug('%s', stems)
 
+    # tag tokens as part-of-speech
+    sents_tokens_tags = nltk.batch_pos_tag(sents_tokens)
+
     # count number of sentences
     data['sentence_count'] = len(sents)
 
@@ -119,6 +122,35 @@ def analyze_text(text, app):
 
     # estimate test readability using Flesch-Kincaid Grade Level test
     data['readability'] = 0.39 * data['words_per_sentence'] + 11.8 * data['syllables_per_word'] - 15.59
+
+    # count number of different parts of speech
+    noun_count = 0
+    pronoun_count = 0
+    verb_count = 0
+    adjective_count = 0
+    adverb_count = 0
+    determiner_count = 0
+    for sent in sents_tokens_tags:
+        for tag in sent:
+            if tag[1][:2] == 'NN':
+                noun_count += 1
+            elif tag[1][:2] == 'PR':
+                pronoun_count += 1
+            elif tag[1][:2] == 'VB':
+                verb_count += 1
+            elif tag[1][:2] == 'JJ':
+                adjective_count += 1
+            elif tag[1][:2] == 'RB':
+                adverb_count += 1
+            elif tag[1][:2] in ['DT', 'WD', 'WP', 'WR']:
+                determiner_count += 1
+    data['noun_ratio'] = noun_count / data['word_count']
+    data['pronoun_ratio'] = pronoun_count / data['word_count']
+    data['verb_ratio'] = verb_count / data['word_count']
+    data['adjective_ratio'] = adjective_count / data['word_count']
+    data['adverb_ratio'] = adverb_count / data['word_count']
+    data['determiner_ratio'] = determiner_count / data['word_count']
+    data['other_pos_ratio'] = 1 - data['noun_ratio'] - data['pronoun_ratio'] - data['verb_ratio'] - data['adjective_ratio'] - data['adverb_ratio'] - data['determiner_ratio']
 
     # count word, bigram, and trigram frequencies
     bcf = nltk.TrigramCollocationFinder.from_words(stems)
