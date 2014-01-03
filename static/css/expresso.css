@@ -1,5 +1,5 @@
 p, textarea, td {
-   font-family: 'Georgia' !important;
+    font-family: 'Georgia' !important;
 }
 
 .text-large {
@@ -12,4 +12,10 @@ p, textarea, td {
 
 #results-table {
     margin-top: 50px;
+}
+
+#text-entry {
+    -webkit-transition: height 0.2s;
+    -moz-transition: height 0.2s;
+    transition: height 0.2s;
 }

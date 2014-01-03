@@ -9,6 +9,9 @@ $(function(){
         // hide results table
         $("#results-table").hide();
 
+        // put textarea into autoresize mode
+        $("#text-entry").autosize({append: "\n"});
+
     });
 
     // analyze text and display results
