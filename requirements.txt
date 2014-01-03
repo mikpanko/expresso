@@ -8,5 +8,6 @@ gunicorn==18.0
 itsdangerous==0.23
 newrelic==2.8.0.7
 nltk==2.0.4
+numpy==1.8.0
 peewee==2.1.7
 wsgiref==0.1.2
