@@ -68,8 +68,14 @@ def analyze_text(text, app):
     # tag tokens as part-of-speech
     sents_tokens_tags = nltk.batch_pos_tag(sents_tokens)
 
+    # count number of words
+    data['word_count'] = len(words)
+
     # count number of sentences
-    data['sentence_count'] = len(sents)
+    if data['word_count']:
+        data['sentence_count'] = len(sents)
+    else:
+        data['sentence_count'] = 0
 
     # count words per sentence
     sents_length = [len(sent) for sent in sents_words]
@@ -98,14 +104,14 @@ def analyze_text(text, app):
     # count number of characters in text
     data['character_count'] = len(data['text'])
 
-    # count number of words
-    data['word_count'] = len(words)
-
     # find vocabulary size
     data['vocabulary_size'] = len(set(stems))
 
     # count number of stopwords
-    data['stopword_ratio'] = reduce(lambda x, y: x + (y in stopset), words, 0) / data['word_count']
+    if data['word_count']:
+        data['stopword_ratio'] = reduce(lambda x, y: x + (y in stopset), words, 0) / data['word_count']
+    else:
+        data['stopword_ratio'] = 0
 
     # count number of syllables per word
     cmu_words_count = 0
@@ -114,14 +120,23 @@ def analyze_text(text, app):
         if word in cmudict:
             cmu_words_count += 1
             cmu_syllables_count += len([phoneme for phoneme in cmudict[word][0] if phoneme[-1].isdigit()])
-    data['syllables_per_word'] = cmu_syllables_count / cmu_words_count
+    if cmu_words_count:
+        data['syllables_per_word'] = cmu_syllables_count / cmu_words_count
+    else:
+        data['syllables_per_word'] = 0
 
     # count number of characters per word
     char_count = [len(word) for word in words]
-    data['characters_per_word'] = sum(char_count) / data['word_count']
+    if data['word_count']:
+        data['characters_per_word'] = sum(char_count) / data['word_count']
+    else:
+        data['characters_per_word'] = 0
 
     # estimate test readability using Flesch-Kincaid Grade Level test
-    data['readability'] = 0.39 * data['words_per_sentence'] + 11.8 * data['syllables_per_word'] - 15.59
+    if data['words_per_sentence'] and data['syllables_per_word']:
+        data['readability'] = 0.39 * data['words_per_sentence'] + 11.8 * data['syllables_per_word'] - 15.59
+    else:
+        data['readability'] = 0
 
     # count number of different parts of speech
     noun_count = 0
@@ -144,13 +159,22 @@ def analyze_text(text, app):
                 adverb_count += 1
             elif tag[1][:2] in ['DT', 'WD', 'WP', 'WR']:
                 determiner_count += 1
-    data['noun_ratio'] = noun_count / data['word_count']
-    data['pronoun_ratio'] = pronoun_count / data['word_count']
-    data['verb_ratio'] = verb_count / data['word_count']
-    data['adjective_ratio'] = adjective_count / data['word_count']
-    data['adverb_ratio'] = adverb_count / data['word_count']
-    data['determiner_ratio'] = determiner_count / data['word_count']
-    data['other_pos_ratio'] = 1 - data['noun_ratio'] - data['pronoun_ratio'] - data['verb_ratio'] - data['adjective_ratio'] - data['adverb_ratio'] - data['determiner_ratio']
+    if data['word_count']:
+        data['noun_ratio'] = noun_count / data['word_count']
+        data['pronoun_ratio'] = pronoun_count / data['word_count']
+        data['verb_ratio'] = verb_count / data['word_count']
+        data['adjective_ratio'] = adjective_count / data['word_count']
+        data['adverb_ratio'] = adverb_count / data['word_count']
+        data['determiner_ratio'] = determiner_count / data['word_count']
+        data['other_pos_ratio'] = 1 - data['noun_ratio'] - data['pronoun_ratio'] - data['verb_ratio'] - data['adjective_ratio'] - data['adverb_ratio'] - data['determiner_ratio']
+    else:
+        data['noun_ratio'] = 0
+        data['pronoun_ratio'] = 0
+        data['verb_ratio'] = 0
+        data['adjective_ratio'] = 0
+        data['adverb_ratio'] = 0
+        data['determiner_ratio'] = 0
+        data['other_pos_ratio'] = 0
 
     # count word, bigram, and trigram frequencies
     bcf = nltk.TrigramCollocationFinder.from_words(stems)
