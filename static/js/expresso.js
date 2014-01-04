@@ -21,8 +21,10 @@ $(function(){
         var el = $(this);
         setTimeout(function() {
             $("div,p,br", el).after("\n");
+            $("span.nlp-highlighted", el).before("HIGHLIGHT000START").after("HIGHLIGHT000END");
             var text = $(el).text();
-            text = text.replace(/\n/mgi, "<br>");
+            text = text.replace(/\n/mgi, "<br>").replace(/HIGHLIGHT000START/mgi, "<span class=\"nlp-highlighted\">")
+                       .replace(/HIGHLIGHT000END/mgi, "</span>");
             el.html(text);
         }, 0);
     });
