@@ -22,5 +22,5 @@ p, td {
 #text-entry {
     margin-bottom: 50px;
     min-height: 200px;
-    /*outline: none;*/
+    outline: none;
 }

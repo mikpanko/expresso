@@ -20,15 +20,11 @@ $(function(){
     $("#text-entry").on("paste", function() {
         var el = $(this);
         setTimeout(function() {
-            //var text = el.html();
-            //text = text.replace(/<div[^>]*>/mgi, '\n').replace(/<\/div[^>]*>/mgi, '')
-            //           .replace(/<span[^>]*>/mgi, '').replace(/<\/span[^>]*>/mgi, '')
-            //           .replace(/<br[^>]*>/mgi, '').replace(/<\/br[^>]*>/mgi, '');
-            //el.html(text);
-            var text = $("div,p,br", el).after("\n").text();
-            text = text.replace(/\n/, '<br>');
+            $("div,p,br", el).after("\n");
+            var text = $(el).text();
+            text = text.replace(/\n/mgi, "<br>");
             el.html(text);
-        }, 1000);
+        }, 0);
     });
 
     // analyze text and display results
