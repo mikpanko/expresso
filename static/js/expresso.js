@@ -41,7 +41,7 @@ $(function(){
             text = text.replace(/\n/mgi, "<br>").replace(/HIGHLIGHT000START/mgi, "<span class=\"nlp-highlighted\">")
                        .replace(/HIGHLIGHT000END/mgi, "</span>");
             el.html(text);
-        }, 50);
+        }, 10);
     });
 
     // analyze text and display results
@@ -52,10 +52,10 @@ $(function(){
 
         // get text
         var text = $("#text-entry").html();
-        text = text.replace(/<div[^>]*>/mgi, '\n').replace(/<\/div[^>]*>/mgi, '')
-                   .replace(/<span[^>]*>/mgi, '').replace(/<\/span[^>]*>/mgi, '')
-                   .replace(/<br[^>]*>/mgi, '').replace(/<\/br[^>]*>/mgi, '');
-        console.log(text);
+        text = text.replace(/<div[^>]*>/mgi, "\n").replace(/<\/div[^>]*>/mgi, "")
+                   .replace(/<span[^>]*>/mgi, "").replace(/<\/span[^>]*>/mgi, "")
+                   .replace(/<br[^>]*>/mgi, "\n").replace(/<\/br[^>]*>/mgi, "")
+                   .replace(/&nbsp;/mgi, " ");
 
         if (text) {
 
