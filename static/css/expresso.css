@@ -15,6 +15,16 @@ p, td {
     background-color: #ffff00;
 }
 
+.data-text-empty:before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #b3b3b3;
+}
+
+.data-text-filled:before {
+    content: '';
+}
+
 #analyze-text {
     margin-bottom: 50px;
 }

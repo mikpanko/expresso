@@ -9,6 +9,21 @@ $(function(){
         // hide results table
         $("#results-table").hide();
 
+        //
+        $("div[data-placeholder]").on("input", function() {
+            var el = $(this);
+            console.log(el.text().length);
+		    if (el.text().length) {
+			    el.removeClass("data-text-empty");
+                el.addClass("data-text-filled");
+		    }
+		    else {
+                el.removeClass("data-text-filled");
+			    el.addClass("data-text-empty");
+                el.html("");
+		    }
+	});
+
     });
 
     // get rid of active state on the mobile menu button
@@ -26,7 +41,7 @@ $(function(){
             text = text.replace(/\n/mgi, "<br>").replace(/HIGHLIGHT000START/mgi, "<span class=\"nlp-highlighted\">")
                        .replace(/HIGHLIGHT000END/mgi, "</span>");
             el.html(text);
-        }, 0);
+        }, 50);
     });
 
     // analyze text and display results
