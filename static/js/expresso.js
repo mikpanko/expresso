@@ -1,3 +1,7 @@
+var text = null;
+var tokens = null;
+var metrics = null;
+
 $(function(){
 
     // run at start
@@ -31,12 +35,19 @@ $(function(){
         $(".navbar-toggle").blur();
     });
 
-    // handle pasting text into text entry field properly (strip formatting)
+    // strip formatting pasting text into text entry field
     $("#text-entry").on("paste", function() {
         var el = $(this);
         setTimeout(function() {
             el.html(cleanHtml(el.html()));
         }, 10);
+    });
+
+    // reset text, tokens, and metrics when text is changed
+    $("#text-entry").on("input", function() {
+        text = null;
+        tokens = null;
+        metrics = null;
     });
 
     // analyze text and display results
@@ -46,7 +57,7 @@ $(function(){
         $("#analyze-text").blur();
 
         // get text
-        var text = html2text($("#text-entry").html());
+        text = html2text($("#text-entry").html());
 
         if (text) {
 
@@ -65,29 +76,30 @@ $(function(){
                 success: function(result, textStatus, error) {
 
                     // display analysis results
-                    console.log(result);
-                    $("#character-count").text(result.character_count.toString());
-                    $("#word-count").text(result.word_count.toString());
-                    $("#vocabulary-size").text(result.vocabulary_size.toString());
-                    $("#sentence-count").text(result.sentence_count.toString());
-                    $("#words-per-sentence").text((Math.round(result.words_per_sentence * 10) / 10).toString());
-                    $("#declarative-ratio").text((Math.round(result.declarative_ratio * 1000) / 10).toString() + "%");
-                    $("#interrogative-ratio").text((Math.round(result.interrogative_ratio * 1000) / 10).toString() + "%");
-                    $("#exclamative-ratio").text((Math.round(result.exclamative_ratio * 1000) / 10).toString() + "%");
-                    $("#stopword-ratio").text((Math.round(result.stopword_ratio * 1000) / 10).toString() + "%");
-                    $("#syllables-per-word").text((Math.round(result.syllables_per_word * 10) / 10).toString());
-                    $("#characters-per-word").text((Math.round(result.characters_per_word * 10) / 10).toString());
-                    $("#readability").text((Math.round(result.readability * 10) / 10).toString());
-                    $("#noun-ratio").text((Math.round(result.noun_ratio * 1000) / 10).toString() + "%");
-                    $("#pronoun-ratio").text((Math.round(result.pronoun_ratio * 1000) / 10).toString() + "%");
-                    $("#verb-ratio").text((Math.round(result.verb_ratio * 1000) / 10).toString() + "%");
-                    $("#adjective-ratio").text((Math.round(result.adjective_ratio * 1000) / 10).toString() + "%");
-                    $("#adverb-ratio").text((Math.round(result.adverb_ratio * 1000) / 10).toString() + "%");
-                    $("#determiner-ratio").text((Math.round(result.determiner_ratio * 1000) / 10).toString() + "%");
-                    $("#other-pos-ratio").text((Math.round(result.other_pos_ratio * 1000) / 10).toString() + "%");
-                    $("#word-freq").html(result.word_freq);
-                    $("#bigram-freq").html(result.bigram_freq);
-                    $("#trigram-freq").html(result.trigram_freq);
+                    tokens = result.tokens;
+                    metrics = result.metrics;
+                    $("#character-count").text(metrics.character_count.toString());
+                    $("#word-count").text(metrics.word_count.toString());
+                    $("#vocabulary-size").text(metrics.vocabulary_size.toString());
+                    $("#sentence-count").text(metrics.sentence_count.toString());
+                    $("#words-per-sentence").text((Math.round(metrics.words_per_sentence * 10) / 10).toString());
+                    $("#declarative-ratio").text((Math.round(metrics.declarative_ratio * 1000) / 10).toString() + "%");
+                    $("#interrogative-ratio").text((Math.round(metrics.interrogative_ratio * 1000) / 10).toString() + "%");
+                    $("#exclamative-ratio").text((Math.round(metrics.exclamative_ratio * 1000) / 10).toString() + "%");
+                    $("#stopword-ratio").text((Math.round(metrics.stopword_ratio * 1000) / 10).toString() + "%");
+                    $("#syllables-per-word").text((Math.round(metrics.syllables_per_word * 10) / 10).toString());
+                    $("#characters-per-word").text((Math.round(metrics.characters_per_word * 10) / 10).toString());
+                    $("#readability").text((Math.round(metrics.readability * 10) / 10).toString());
+                    $("#noun-ratio").text((Math.round(metrics.noun_ratio * 1000) / 10).toString() + "%");
+                    $("#pronoun-ratio").text((Math.round(metrics.pronoun_ratio * 1000) / 10).toString() + "%");
+                    $("#verb-ratio").text((Math.round(metrics.verb_ratio * 1000) / 10).toString() + "%");
+                    $("#adjective-ratio").text((Math.round(metrics.adjective_ratio * 1000) / 10).toString() + "%");
+                    $("#adverb-ratio").text((Math.round(metrics.adverb_ratio * 1000) / 10).toString() + "%");
+                    $("#determiner-ratio").text((Math.round(metrics.determiner_ratio * 1000) / 10).toString() + "%");
+                    $("#other-pos-ratio").text((Math.round(metrics.other_pos_ratio * 1000) / 10).toString() + "%");
+                    $("#word-freq").html(metrics.word_freq);
+                    $("#bigram-freq").html(metrics.bigram_freq);
+                    $("#trigram-freq").html(metrics.trigram_freq);
                     $("#results-table").show();
                     $("#analyze-text").button('reset');
 

@@ -2,7 +2,6 @@ from __future__ import division
 import nltk
 import re
 import operator
-from datetime import datetime
 
 newline_re = re.compile('\n+')
 ellipsis_re = re.compile('\.\.\.["\u201C\u201D ]+[A-Z]')
@@ -12,14 +11,13 @@ cmudict = nltk.corpus.cmudict.dict()
 
 
 def analyze_text(text, app):
-    # load json with data into a python dictionary
-    data = dict(text=text)
 
-    # add date and time
-    data['timestamp'] = datetime.now().replace(microsecond=0)
+    # create data and metrics dictionary
+    data = dict()
+    metrics = dict()
 
     # tokenize text into sentences
-    sents_draft = nltk.sent_tokenize(data['text'])
+    sents_draft = nltk.sent_tokenize(text)
     app.logger.debug('%s', sents_draft)
 
     # separate sentences at new line characters correctly
@@ -54,35 +52,47 @@ def analyze_text(text, app):
     # tokenize sentences into words and punctuation marks
     sents_tokens = [nltk.word_tokenize(sent) for sent in sents]
     app.logger.debug('%s', sents_tokens)
+    tokens = [token for sent in sents_tokens for token in sent]
+    data['value'] = tokens
+    data['sentence_number'] = [(idx+1) for idx, sent in enumerate(sents_tokens) for token in sent]
 
     # find words
     sents_words = [[token.lower() for token in sent if token[0].isalnum()] for sent in sents_tokens]
     app.logger.debug('%s', sents_words)
-    words = [word for sent in sents_words for word in sent]
+    words = []
+    word2token_map = []
+    for idx, token in enumerate(tokens):
+        if token[0].isalnum():
+            words.append(token.lower())
+            word2token_map.append(idx)
 
     # find word stems
     stems = [stemmer.stem(word) for word in words]
     app.logger.debug('%s', stems)
+    data['stem'] = [None] * len(tokens)
+    for idx, stem in enumerate(stems):
+        data['stem'][word2token_map[idx]] = stem
 
     # tag tokens as part-of-speech
     sents_tokens_tags = nltk.batch_pos_tag(sents_tokens)
+    data['part_of_speech'] = [pos for sent in sents_tokens_tags for (token, pos) in sent]
 
     # count number of words
-    data['word_count'] = len(words)
+    metrics['word_count'] = len(words)
 
     # count number of sentences
-    if data['word_count']:
-        data['sentence_count'] = len(sents)
+    if metrics['word_count']:
+        metrics['sentence_count'] = len(sents)
     else:
-        data['sentence_count'] = 0
+        metrics['sentence_count'] = 0
 
     # count words per sentence
     sents_length = [len(sent) for sent in sents_words]
     app.logger.debug('%s', sents_length)
     if len(sents_length):
-        data['words_per_sentence'] = sum(sents_length) / len(sents_length)
+        metrics['words_per_sentence'] = sum(sents_length) / len(sents_length)
     else:
-        data['words_per_sentence'] = 0
+        metrics['words_per_sentence'] = 0
 
     # count sentence types
     sents_end_punct = []
@@ -93,49 +103,61 @@ def analyze_text(text, app):
                 sents_end_punct[-1] = token
             elif token[0].isalnum():
                 break
-    if data['sentence_count']:
-        data['declarative_ratio'] = (sents_end_punct.count('.') + sents_end_punct.count('...')) / data['sentence_count']
-        data['interrogative_ratio'] = sents_end_punct.count('?') / data['sentence_count']
-        data['exclamative_ratio'] = sents_end_punct.count('!') / data['sentence_count']
+    data['sentence_end_punctuation'] = [sents_end_punct[idx] for idx, sent in enumerate(sents_tokens) for token in sent]
+    if metrics['sentence_count']:
+        metrics['declarative_ratio'] = (sents_end_punct.count('.') + sents_end_punct.count('...')) \
+                                       / metrics['sentence_count']
+        metrics['interrogative_ratio'] = sents_end_punct.count('?') / metrics['sentence_count']
+        metrics['exclamative_ratio'] = sents_end_punct.count('!') / metrics['sentence_count']
     else:
-        data['declarative_ratio'] = data['interrogative_ratio'] = data['exclamative_ratio'] = 0
+        metrics['declarative_ratio'] = metrics['interrogative_ratio'] = metrics['exclamative_ratio'] = 0
 
     # count number of characters in text
-    data['character_count'] = len(data['text'])
+    metrics['character_count'] = len(text)
 
     # find vocabulary size
-    data['vocabulary_size'] = len(set(stems))
+    metrics['vocabulary_size'] = len(set(stems))
 
     # count number of stopwords
-    if data['word_count']:
-        data['stopword_ratio'] = reduce(lambda x, y: x + (y in stopset), words, 0) / data['word_count']
-    else:
-        data['stopword_ratio'] = 0
+    metrics['stopword_ratio'] = 0
+    data['stopword'] = [None] * len(tokens)
+    for idx, word in enumerate(words):
+        if word in stopset:
+            metrics['stopword_ratio'] += 1
+            data['stopword'][word2token_map[idx]] = True
+        else:
+            data['stopword'][word2token_map[idx]] = False
+    if metrics['word_count']:
+        metrics['stopword_ratio'] /= metrics['word_count']
 
     # count number of syllables per word
     cmu_words_count = 0
     cmu_syllables_count = 0
-    for word in words:
+    data['number_of_syllables'] = [None] * len(tokens)
+    for idx, word in enumerate(words):
         if word in cmudict:
             cmu_words_count += 1
-            cmu_syllables_count += len([phoneme for phoneme in cmudict[word][0] if phoneme[-1].isdigit()])
+            syll_num = len([phoneme for phoneme in cmudict[word][0] if phoneme[-1].isdigit()])
+            cmu_syllables_count += syll_num
+            data['number_of_syllables'][word2token_map[idx]] = syll_num
     if cmu_words_count:
-        data['syllables_per_word'] = cmu_syllables_count / cmu_words_count
+        metrics['syllables_per_word'] = cmu_syllables_count / cmu_words_count
     else:
-        data['syllables_per_word'] = 0
+        metrics['syllables_per_word'] = 0
 
     # count number of characters per word
     char_count = [len(word) for word in words]
-    if data['word_count']:
-        data['characters_per_word'] = sum(char_count) / data['word_count']
+    if metrics['word_count']:
+        metrics['characters_per_word'] = sum(char_count) / metrics['word_count']
     else:
-        data['characters_per_word'] = 0
+        metrics['characters_per_word'] = 0
+    data['number_of_characters'] = [len(token) if token[0].isalnum() else None for token in tokens]
 
     # estimate test readability using Flesch-Kincaid Grade Level test
-    if data['words_per_sentence'] and data['syllables_per_word']:
-        data['readability'] = 0.39 * data['words_per_sentence'] + 11.8 * data['syllables_per_word'] - 15.59
+    if metrics['words_per_sentence'] and metrics['syllables_per_word']:
+        metrics['readability'] = 0.39 * metrics['words_per_sentence'] + 11.8 * metrics['syllables_per_word'] - 15.59
     else:
-        data['readability'] = 0
+        metrics['readability'] = 0
 
     # count number of different parts of speech
     noun_count = 0
@@ -158,23 +180,24 @@ def analyze_text(text, app):
                 adverb_count += 1
             elif tag[1][:2] in ['DT', 'WD', 'WP', 'WR']:
                 determiner_count += 1
-    if data['word_count']:
-        data['noun_ratio'] = noun_count / data['word_count']
-        data['pronoun_ratio'] = pronoun_count / data['word_count']
-        data['verb_ratio'] = verb_count / data['word_count']
-        data['adjective_ratio'] = adjective_count / data['word_count']
-        data['adverb_ratio'] = adverb_count / data['word_count']
-        data['determiner_ratio'] = determiner_count / data['word_count']
-        data['other_pos_ratio'] = 1 - data['noun_ratio'] - data['pronoun_ratio'] - data['verb_ratio'] \
-                                    - data['adjective_ratio'] - data['adverb_ratio'] - data['determiner_ratio']
+    if metrics['word_count']:
+        metrics['noun_ratio'] = noun_count / metrics['word_count']
+        metrics['pronoun_ratio'] = pronoun_count / metrics['word_count']
+        metrics['verb_ratio'] = verb_count / metrics['word_count']
+        metrics['adjective_ratio'] = adjective_count / metrics['word_count']
+        metrics['adverb_ratio'] = adverb_count / metrics['word_count']
+        metrics['determiner_ratio'] = determiner_count / metrics['word_count']
+        metrics['other_pos_ratio'] = 1 - metrics['noun_ratio'] - metrics['pronoun_ratio'] - metrics['verb_ratio'] \
+                                       - metrics['adjective_ratio'] - metrics['adverb_ratio'] \
+                                       - metrics['determiner_ratio']
     else:
-        data['noun_ratio'] = 0
-        data['pronoun_ratio'] = 0
-        data['verb_ratio'] = 0
-        data['adjective_ratio'] = 0
-        data['adverb_ratio'] = 0
-        data['determiner_ratio'] = 0
-        data['other_pos_ratio'] = 0
+        metrics['noun_ratio'] = 0
+        metrics['pronoun_ratio'] = 0
+        metrics['verb_ratio'] = 0
+        metrics['adjective_ratio'] = 0
+        metrics['adverb_ratio'] = 0
+        metrics['determiner_ratio'] = 0
+        metrics['other_pos_ratio'] = 0
 
     # count word, bigram, and trigram frequencies
     bcf = nltk.TrigramCollocationFinder.from_words(stems)
@@ -188,7 +211,7 @@ def analyze_text(text, app):
     sorted_word_freq = [word for word in sorted_word_freq if (word[1] > 1) and (word[0] not in stopset)]
     sorted_word_freq = sorted_word_freq[:min(len(sorted_word_freq), 10)]
     sorted_word_freq = reduce(lambda x, y: x + y[0] + ' (' + str(y[1]) + ')<br>', sorted_word_freq, '')
-    data['word_freq'] = sorted_word_freq[:-4]
+    metrics['word_freq'] = sorted_word_freq[:-4]
 
     # prepare string displaying bigram frequencies
     sorted_bigram_freq = sorted(bigram_freq.iteritems(), key=operator.itemgetter(1))
@@ -198,7 +221,7 @@ def analyze_text(text, app):
     sorted_bigram_freq = sorted_bigram_freq[:min(len(sorted_bigram_freq), 10)]
     sorted_bigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' (' + str(y[1]) + ')<br>',
                                 sorted_bigram_freq, '')
-    data['bigram_freq'] = sorted_bigram_freq[:-4]
+    metrics['bigram_freq'] = sorted_bigram_freq[:-4]
 
     # prepare string displaying trigram frequencies
     sorted_trigram_freq = sorted(trigram_freq.iteritems(), key=operator.itemgetter(1))
@@ -207,6 +230,8 @@ def analyze_text(text, app):
     sorted_trigram_freq = sorted_trigram_freq[:min(len(trigram_freq), 10)]
     sorted_trigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' ' + y[0][2] + ' (' + str(y[1]) + ')<br>',
                                  sorted_trigram_freq, '')
-    data['trigram_freq'] = sorted_trigram_freq[:-4]
+    metrics['trigram_freq'] = sorted_trigram_freq[:-4]
 
-    return data
+    app.logger.debug('%s', data)
+
+    return data, metrics

@@ -3,6 +3,7 @@ import os
 from peewee import *
 from text_analysis import analyze_text
 from model import db_proxy, Text
+from datetime import datetime
 
 app = Flask(__name__)
 app.config.update(**os.environ)
@@ -21,9 +22,9 @@ def about_route():
 @app.route('/analyze-text', methods=['POST'])
 def analyze():
     text = request.form.get('text', '')
-    analyzed_text = analyze_text(text, app)
-    Text.create(**analyzed_text)
-    return jsonify(analyzed_text)
+    tokens, metrics = analyze_text(text, app)
+    Text.create(text=text, timestamp=datetime.now().replace(microsecond=0), **metrics)
+    return jsonify({'tokens': tokens, 'metrics': metrics})
 
 
 @app.before_request
