@@ -35,12 +35,7 @@ $(function(){
     $("#text-entry").on("paste", function() {
         var el = $(this);
         setTimeout(function() {
-            $("div,p,br", el).after("\n");
-            $("span.nlp-highlighted", el).before("HIGHLIGHT000START").after("HIGHLIGHT000END");
-            var text = $(el).text();
-            text = text.replace(/\n/mgi, "<br>").replace(/HIGHLIGHT000START/mgi, "<span class=\"nlp-highlighted\">")
-                       .replace(/HIGHLIGHT000END/mgi, "</span>");
-            el.html(text);
+            el.html(cleanHtml(el.html()));
         }, 10);
     });
 
@@ -51,11 +46,7 @@ $(function(){
         $("#analyze-text").blur();
 
         // get text
-        var text = $("#text-entry").html();
-        text = text.replace(/<div[^>]*>/mgi, "\n").replace(/<\/div[^>]*>/mgi, "")
-                   .replace(/<span[^>]*>/mgi, "").replace(/<\/span[^>]*>/mgi, "")
-                   .replace(/<br[^>]*>/mgi, "\n").replace(/<\/br[^>]*>/mgi, "")
-                   .replace(/&nbsp;/mgi, " ");
+        var text = html2text($("#text-entry").html());
 
         if (text) {
 
@@ -72,6 +63,7 @@ $(function(){
                     text: text
                 },
                 success: function(result, textStatus, error) {
+
                     // display analysis results
                     console.log(result);
                     $("#character-count").text(result.character_count.toString());
@@ -98,6 +90,7 @@ $(function(){
                     $("#trigram-freq").html(result.trigram_freq);
                     $("#results-table").show();
                     $("#analyze-text").button('reset');
+
                 },
                 error: function(request, textStatus, error) {
                     alert("Cannot analyze text: " + error);
@@ -106,5 +99,25 @@ $(function(){
         };
 
     });
+
+    // convert html to text
+    function html2text(htmlStr) {
+        htmlStr = htmlStr.replace(/<div><br><\/div>/mgi, "");
+        var el = $("<div>").html(htmlStr);
+        $("div,p,br", el).after("\n");
+        return el.text().trim();
+    }
+
+    // clean html of formatting
+    function cleanHtml(htmlStr) {
+        var el = $("<div>").html(htmlStr);
+        $("div,p,br", el).after("\n");
+        $("span.nlp-highlighted", el).before("HIGHLIGHT000START").after("HIGHLIGHT000END");
+        return el.text().trim().replace(/\n/mgi, "<br>").replace(/HIGHLIGHT000START/mgi, "<span class=\"nlp-highlighted\">")
+            .replace(/HIGHLIGHT000END/mgi, "</span>");
+    }
+
+    window.html2text = html2text;
+    window.cleanHtml = cleanHtml;
 
 });
