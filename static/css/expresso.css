@@ -11,10 +11,6 @@ p, td {
     font-size: 18px;
 }
 
-.nlp-highlighted {
-    background-color: #ffff00;
-}
-
 .data-text-empty:before {
     content: attr(data-placeholder);
     float: left;
@@ -23,6 +19,39 @@ p, td {
 
 .data-text-filled:before {
     content: '';
+}
+
+.metric-active {
+    color: #1e0fbe;
+}
+
+.metric-active:hover {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.metric-active:active {
+    color: #ff0000;
+}
+
+.nlp-highlighted-1 {
+    background-color: rgba(255, 255, 0, 0.5);
+}
+
+.nlp-highlighted-2 {
+    background-color: rgba(0, 255, 255, 0.5);
+}
+
+.nlp-highlighted-3 {
+    background-color: rgba(0, 255, 0, 0.5);
+}
+
+.nlp-highlighted-4 {
+    background-color: rgba(255, 0, 255, 0.5);
+}
+
+.nlp-highlighted-5 {
+    background-color: rgba(255, 0, 0, 0.5);
 }
 
 #analyze-text {
