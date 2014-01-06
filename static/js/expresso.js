@@ -200,6 +200,7 @@ $(function(){
     function makeTokenMask(metric) {
         var mask = [];
         switch (metric) {
+
             case "metric-stopwords":
                 for (var i=0; i<tokens.value.length; i++) {
                     if (tokens.stopword[i]) {
@@ -207,6 +208,64 @@ $(function(){
                     }
                 }
                 break;
+
+            case "metric-declar-sents":
+                var span = [0, null];
+                var validSent = ([".", "..."].indexOf(tokens.sentence_end_punctuation[0])>=0);
+                for (var i=1; i<tokens.sentence_number.length; i++) {
+                    if (tokens.sentence_number[i] != tokens.sentence_number[i-1]) {
+                        span[1] = i - 1;
+                        if (validSent) {
+                            mask.push(span);
+                        }
+                        span = [i, null];
+                        validSent = ([".", "..."].indexOf(tokens.sentence_end_punctuation[i])>=0);
+                    }
+                }
+                span[1] = tokens.sentence_number.length - 1;
+                if (validSent) {
+                    mask.push(span);
+                }
+                break;
+
+            case "metric-inter-sents":
+                var span = [0, null];
+                var validSent = (tokens.sentence_end_punctuation[0]=="?");
+                for (var i=1; i<tokens.sentence_number.length; i++) {
+                    if (tokens.sentence_number[i] != tokens.sentence_number[i-1]) {
+                        span[1] = i - 1;
+                        if (validSent) {
+                            mask.push(span);
+                        }
+                        span = [i, null];
+                        validSent = (tokens.sentence_end_punctuation[i]=="?");
+                    }
+                }
+                span[1] = tokens.sentence_number.length - 1;
+                if (validSent) {
+                    mask.push(span);
+                }
+                break;
+
+            case "metric-exclam-sents":
+                var span = [0, null];
+                var validSent = (tokens.sentence_end_punctuation[0]=="!");
+                for (var i=1; i<tokens.sentence_number.length; i++) {
+                    if (tokens.sentence_number[i] != tokens.sentence_number[i-1]) {
+                        span[1] = i - 1;
+                        if (validSent) {
+                            mask.push(span);
+                        }
+                        span = [i, null];
+                        validSent = (tokens.sentence_end_punctuation[i]=="!");
+                    }
+                }
+                span[1] = tokens.sentence_number.length - 1;
+                if (validSent) {
+                    mask.push(span);
+                }
+                break;
+
         }
         return mask;
     }
