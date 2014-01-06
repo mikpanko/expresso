@@ -21,10 +21,10 @@ def about_route():
 
 @app.route('/analyze-text', methods=['POST'])
 def analyze():
-    text = request.form.get('text', '')
-    tokens, metrics = analyze_text(text, app)
+    html = request.form.get('html', '')
+    text, tokens, metrics = analyze_text(html, app)
     Text.create(text=text, timestamp=datetime.now().replace(microsecond=0), **metrics)
-    return jsonify({'tokens': tokens, 'metrics': metrics})
+    return jsonify({'text': text, 'tokens': tokens, 'metrics': metrics})
 
 
 @app.before_request

@@ -4,6 +4,7 @@ MarkupSafe==0.18
 MySQL-python==1.2.4
 PyYAML==3.10
 Werkzeug==0.9.4
+beautifulsoup4==4.3.2
 gunicorn==18.0
 itsdangerous==0.23
 newrelic==2.8.0.7

@@ -1,58 +1,55 @@
 from __future__ import division
 import nltk
 import re
+from bs4 import BeautifulSoup
 import operator
 
-newline_re = re.compile('\n+')
-ellipsis_re = re.compile('\.\.\.["\u201C\u201D ]+[A-Z]')
+html_newline_re = re.compile('(<br|</div|</p)')
+quotation_re = re.compile(u'[\u00AB\u00BB\u201C\u201D\u201E\u201F\u2033\u2036\u301D\u301E]')
+ellipsis_re = re.compile('\.\.\.[" ]+[A-Z]')
 stopset = set(nltk.corpus.stopwords.words('english'))
 stemmer = nltk.PorterStemmer()
 cmudict = nltk.corpus.cmudict.dict()
 
 
-def analyze_text(text, app):
+def analyze_text(html, app):
 
     # create data and metrics dictionary
     data = dict()
     metrics = dict()
 
-    # tokenize text into sentences
-    sents_draft = nltk.sent_tokenize(text)
-    app.logger.debug('%s', sents_draft)
+    # strip html tags
+    app.logger.debug('%s', html)
+    html = html_newline_re.sub(lambda m: '\n'+m.group(0), html)
+    soup = BeautifulSoup(html)
+    original_text = soup.get_text().rstrip('\n')
+    app.logger.debug('%s', original_text)
 
-    # separate sentences at new line characters correctly
-    sents_draft_2 = []
-    for sent in sents_draft:
-        idx = 0
-        for newline_case in newline_re.finditer(sent):
-            sents_draft_2.append(sent[idx:newline_case.start()])
-            idx = newline_case.end()
-        sents_draft_2.append(sent[idx:])
+    # standardize all quotation marks
+    text = quotation_re.sub('"', original_text)
+
+    # tokenize text into sentences
+    tmpText = text.replace('"', '0"')
+    sents_draft = nltk.sent_tokenize(tmpText)
+    sents_draft = [sent.replace('0"', '"') for sent in sents_draft]
+    app.logger.debug('%s', sents_draft)
 
     # separate sentences at ellipsis characters correctly
     sents = []
-    for sent in sents_draft_2:
+    for sent in sents_draft:
         idx = 0
         for ellipsis_case in ellipsis_re.finditer(sent):
             sents.append(sent[idx:(ellipsis_case.start() + 3)])
             idx = ellipsis_case.start() + 3
         sents.append(sent[idx:])
 
-    # move closing quotation marks to the sentence they belong
-    for idx in range(len(sents[:-1])):
-        if (sents[idx].count('"') + sents[idx].count('\u201C') + sents[idx].count('\u201D')) % 2 == 1:
-            if sents[idx + 1][0] in '"\u201C\u201D':
-                sents[idx] += sents[idx + 1][0]
-                sents[idx + 1] = sents[idx + 1][1:]
-
-    # delete sentences consisting only of punctuation marks
-    sents = [sent for sent in sents if (sent not in '!?"\u201C\u201D')]
     app.logger.debug('%s', sents)
 
     # tokenize sentences into words and punctuation marks
     sents_tokens = [nltk.word_tokenize(sent) for sent in sents]
     app.logger.debug('%s', sents_tokens)
     tokens = [token for sent in sents_tokens for token in sent]
+
     data['value'] = tokens
     data['sentence_number'] = [(idx+1) for idx, sent in enumerate(sents_tokens) for token in sent]
 
@@ -234,4 +231,4 @@ def analyze_text(text, app):
 
     app.logger.debug('%s', data)
 
-    return data, metrics
+    return original_text, data, metrics

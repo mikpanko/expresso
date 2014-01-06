@@ -72,9 +72,18 @@ $(function(){
             analyzeTextButton.blur();
 
             // get text
-            text = html2text(textField.html());
+            //text = html2text(textField.html());
+            text = textField.html();
+            var hasValidCharacters = false;
+            var inputCharacters = textField.text();
+            for (var i=0; i<inputCharacters.length; i++) {
+                if ((inputCharacters.charCodeAt(i)>=33) && (inputCharacters.charCodeAt(i)<=126)) {
+                    hasValidCharacters = true;
+                    break;
+                }
+            }
 
-            if (text) {
+            if (hasValidCharacters) {
 
                 // put UI in analyzing mode
                 analyzeTextButton.button("loading");
@@ -86,11 +95,12 @@ $(function(){
                     url: "/analyze-text",
                     dataType: "json",
                     data: {
-                        text: text
+                        html: text
                     },
                     success: function(result, textStatus, error) {
 
                         // display analysis results
+                        text = result.text;
                         tokens = result.tokens;
                         metrics = result.metrics;
                         $("#character-count").text(metrics.character_count.toString());
@@ -115,6 +125,7 @@ $(function(){
                         $("#word-freq").html(metrics.word_freq);
                         $("#bigram-freq").html(metrics.bigram_freq);
                         $("#trigram-freq").html(metrics.trigram_freq);
+                        textField.html(renderTokensToHtml());
                         resultsTable.show();
                         analyzeTextButton.button('reset');
                         modifiedText = false;
@@ -175,6 +186,7 @@ $(function(){
                         mask.push(i);
                     }
                 }
+                break;
         }
         return mask;
     }
@@ -203,17 +215,15 @@ $(function(){
         }
         var idxText = 0;
         var idxTokens = 0;
+        var token = tokens.value[idxTokens];
         while (idxText<text.length) {
-            while (text.slice(idxText, idxText+tokens.value[idxTokens].length)!=tokens.value[idxTokens]) {
-                if (text[idxText]=="\n") {
-                    html = html + "<br>";
-                } else {
-                    html = html + text[idxText];
-                    if (text[idxText]!=" ") {
-                        console.log(text[idxText]);
-                        console.log(text[idxText].charCodeAt(0));
-                        console.log(idxText);
-                    }
+            while ([32, 10, 160].indexOf(text.charCodeAt(idxText))>=0) {
+                switch (text[idxText]) {
+                    case "\n":
+                        html = html + "<br>";
+                        break;
+                    default:
+                        html = html + text[idxText];
                 }
                 idxText = idxText + 1;
             }
@@ -222,25 +232,52 @@ $(function(){
                     html = html + "<span class=\"nlp-highlighted-" + (i+1).toString() + "\">";
                 }
             }
-            html = html + tokens.value[idxTokens];
-            idxText = idxText + tokens.value[idxTokens].length;
+            var tokenInText = null;
+            if (["``", "''"].indexOf(token)>=0) {
+                if ([34, 171, 187, 8220, 8221, 8222, 8223, 8243, 8246, 12317, 12318].indexOf(text.charCodeAt(idxText))>=0) {
+                    tokenInText = text[idxText];
+                } else if (["``", "''"].indexOf(text.slice(idxText, idxText+2))>=0) {
+                    tokenInText = token;
+                } else {
+                    console.log(idxText);
+                    console.log(text[idxText]);
+                    console.log(text.charCodeAt(idxText));
+                }
+            } else if (token==String.fromCharCode(8230)) {
+                if (text.charCodeAt(idxText)==8230) {
+                    tokenInText = token;
+                } else if (text.slice(idxText, idxText+3)=="...") {
+                    tokenInText = "...";
+                } else {
+                    console.log(idxText);
+                    console.log(text[idxText]);
+                    console.log(text.charCodeAt(idxText));
+                }
+            } else {
+                tokenInText = token;
+            }
+            html = html + tokenInText;
+            idxText = idxText + tokenInText.length;
             for (var i=0; i<spanEndTokens.length; i++) {
                 if (spanEndTokens[i].indexOf(idxTokens)>=0) {
                     html = html + "</span>";
                 }
             }
             idxTokens = idxTokens + 1;
+            if (idxTokens<tokens.value.length) {
+                token = tokens.value[idxTokens];
+            }
         }
         return html;
     }
 
-    // convert html to text
-    function html2text(htmlStr) {
-        htmlStr = htmlStr.replace(/<div><br><\/div>/mgi, "\n");
-        var el = $("<div>").html(htmlStr);
-        $("div,p,br", el).before("\n");
-        return el.text().trim();
-    }
+//    // convert html to text
+//    function html2text(htmlStr) {
+//        htmlStr = htmlStr.replace(/<div><br><\/div>/mgi, "\n");
+//        var el = $("<div>").html(htmlStr);
+//        $("div,p,br", el).before("\n");
+//        return el.text().trim();
+//    }
 
     // clean html of formatting
     function cleanHtml(htmlStr) {
