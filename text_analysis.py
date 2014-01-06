@@ -4,6 +4,7 @@ import re
 from bs4 import BeautifulSoup
 import operator
 
+# pre-load and pre-compile required variables and methods
 html_newline_re = re.compile('(<br|</div|</p)')
 quotation_re = re.compile(u'[\u00AB\u00BB\u201C\u201D\u201E\u201F\u2033\u2036\u301D\u301E]')
 ellipsis_re = re.compile('\.\.\.[" ]+[A-Z]')
@@ -14,9 +15,13 @@ cmudict = nltk.corpus.cmudict.dict()
 
 def analyze_text(html, app):
 
-    # create data and metrics dictionary
+    # create data and metrics dictionaries
     data = dict()
     metrics = dict()
+
+    app.logger.debug('%s', html)
+
+    ### parse text/html string
 
     # strip html tags
     app.logger.debug('%s', html)
@@ -32,7 +37,6 @@ def analyze_text(html, app):
     tmpText = text.replace('"', '0"')
     sents_draft = nltk.sent_tokenize(tmpText)
     sents_draft = [sent.replace('0"', '"') for sent in sents_draft]
-    app.logger.debug('%s', sents_draft)
 
     # separate sentences at ellipsis characters correctly
     sents = []
@@ -42,14 +46,12 @@ def analyze_text(html, app):
             sents.append(sent[idx:(ellipsis_case.start() + 3)])
             idx = ellipsis_case.start() + 3
         sents.append(sent[idx:])
-
     app.logger.debug('%s', sents)
 
     # tokenize sentences into words and punctuation marks
     sents_tokens = [nltk.word_tokenize(sent) for sent in sents]
     app.logger.debug('%s', sents_tokens)
     tokens = [token for sent in sents_tokens for token in sent]
-
     data['value'] = tokens
     data['sentence_number'] = [(idx+1) for idx, sent in enumerate(sents_tokens) for token in sent]
 
@@ -74,24 +76,26 @@ def analyze_text(html, app):
     sents_tokens_tags = nltk.batch_pos_tag(sents_tokens)
     data['part_of_speech'] = [pos for sent in sents_tokens_tags for (token, pos) in sent]
 
+
+    ### compute metrics on parsed data
+
+    # count number of sentences
+    metrics['sentence_count'] = len(sents)
+
     # count number of words
     metrics['word_count'] = len(words)
 
-    # count number of sentences
-    if metrics['word_count']:
-        metrics['sentence_count'] = len(sents)
-    else:
-        metrics['sentence_count'] = 0
-
-    # count words per sentence
+    # count number of words per sentence
     sents_length = [len(sent) for sent in sents_words]
-    app.logger.debug('%s', sents_length)
     if len(sents_length):
         metrics['words_per_sentence'] = sum(sents_length) / len(sents_length)
     else:
         metrics['words_per_sentence'] = 0
 
-    # count sentence types
+    # find vocabulary size
+    metrics['vocabulary_size'] = len(set(stems))
+
+    # count sentence types based on ending punctuation mark
     sents_end_punct = []
     for sent in sents_tokens:
         sents_end_punct.append('')
@@ -109,11 +113,8 @@ def analyze_text(html, app):
     else:
         metrics['declarative_ratio'] = metrics['interrogative_ratio'] = metrics['exclamative_ratio'] = 0
 
-    # count number of characters in text
+    # count number of characters in the whole text
     metrics['character_count'] = len(text)
-
-    # find vocabulary size
-    metrics['vocabulary_size'] = len(set(stems))
 
     # count number of stopwords
     metrics['stopword_ratio'] = 0
@@ -228,7 +229,5 @@ def analyze_text(html, app):
     sorted_trigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' ' + y[0][2] + ' (' + str(y[1]) + ')<br>',
                                  sorted_trigram_freq, '')
     metrics['trigram_freq'] = sorted_trigram_freq[:-4]
-
-    app.logger.debug('%s', data)
 
     return original_text, data, metrics

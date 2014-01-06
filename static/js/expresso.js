@@ -42,7 +42,7 @@ $(function(){
             }
         });
 
-        // strip formatting pasting text into text entry field
+        // strip format when pasting text into text entry field
         textField.on("paste", function() {
             var el = $(this);
             setTimeout(function() {
@@ -89,7 +89,7 @@ $(function(){
                 analyzeTextButton.button("loading");
                 resultsTable.hide();
 
-                // send text to the server
+                // send text to the server for analysis
                 $.ajax({
                     type: "POST",
                     url: "/analyze-text",
@@ -99,32 +99,11 @@ $(function(){
                     },
                     success: function(result, textStatus, error) {
 
-                        // display analysis results
+                        // success - display analysis results
                         text = result.text;
                         tokens = result.tokens;
                         metrics = result.metrics;
-                        $("#character-count").text(metrics.character_count.toString());
-                        $("#word-count").text(metrics.word_count.toString());
-                        $("#vocabulary-size").text(metrics.vocabulary_size.toString());
-                        $("#sentence-count").text(metrics.sentence_count.toString());
-                        $("#words-per-sentence").text((Math.round(metrics.words_per_sentence * 10) / 10).toString());
-                        $("#declarative-ratio").text((Math.round(metrics.declarative_ratio * 1000) / 10).toString() + "%");
-                        $("#interrogative-ratio").text((Math.round(metrics.interrogative_ratio * 1000) / 10).toString() + "%");
-                        $("#exclamative-ratio").text((Math.round(metrics.exclamative_ratio * 1000) / 10).toString() + "%");
-                        $("#stopword-ratio").text((Math.round(metrics.stopword_ratio * 1000) / 10).toString() + "%");
-                        $("#syllables-per-word").text((Math.round(metrics.syllables_per_word * 10) / 10).toString());
-                        $("#characters-per-word").text((Math.round(metrics.characters_per_word * 10) / 10).toString());
-                        $("#readability").text((Math.round(metrics.readability * 10) / 10).toString());
-                        $("#noun-ratio").text((Math.round(metrics.noun_ratio * 1000) / 10).toString() + "%");
-                        $("#pronoun-ratio").text((Math.round(metrics.pronoun_ratio * 1000) / 10).toString() + "%");
-                        $("#verb-ratio").text((Math.round(metrics.verb_ratio * 1000) / 10).toString() + "%");
-                        $("#adjective-ratio").text((Math.round(metrics.adjective_ratio * 1000) / 10).toString() + "%");
-                        $("#adverb-ratio").text((Math.round(metrics.adverb_ratio * 1000) / 10).toString() + "%");
-                        $("#determiner-ratio").text((Math.round(metrics.determiner_ratio * 1000) / 10).toString() + "%");
-                        $("#other-pos-ratio").text((Math.round(metrics.other_pos_ratio * 1000) / 10).toString() + "%");
-                        $("#word-freq").html(metrics.word_freq);
-                        $("#bigram-freq").html(metrics.bigram_freq);
-                        $("#trigram-freq").html(metrics.trigram_freq);
+                        addMetricsToResultsTable();
                         textField.html(renderTokensToHtml());
                         resultsTable.show();
                         analyzeTextButton.button('reset');
@@ -133,6 +112,8 @@ $(function(){
 
                     },
                     error: function(request, textStatus, error) {
+
+                        // error - display a message
                         alert("Cannot analyze text: " + error);
                     }
                 });
@@ -143,19 +124,31 @@ $(function(){
         // handle clicking on metrics
         $(".metric").click(function() {
             var el = $(this);
+
+            // only work with active metrics (text hasn't changed since last analysis)
             if (el.hasClass("metric-active")) {
                 var classes = el.attr("class");
                 if (classes.search("nlp-highlighted-")==-1) {
+
+                    // if metric is not currently highlighted try to turn it on
                     if (activeTokenMasks.indexOf(false)==-1) {
+
+                        // all possible highlights are used on other metrics
                         alert("Used all possible highlights! Please, unselect one before adding another.");
+
                     } else {
+
+                        // add a highlight
                         var maskNum = activeTokenMasks.indexOf(false);
                         tokenMasks[maskNum] = makeTokenMask(el.attr("id"));
                         textField.html(renderTokensToHtml());
                         activeTokenMasks[maskNum] = true;
                         el.addClass("nlp-highlighted-" + (maskNum+1).toString());
+
                     }
                 } else {
+
+                    // if metric is currently highlighted turn it off
                     var maskNum = parseInt(classes[classes.indexOf("nlp-highlighted-") + 16]) - 1;
                     var className = "nlp-highlighted-" + (maskNum+1).toString();
                     tokenMasks[maskNum] = null;
@@ -169,12 +162,39 @@ $(function(){
                     if (modifiedText) {
                         el.removeClass("metric-active");
                     }
+
                 }
             }
         });
 
 
     });
+
+    // enter metrics into the results table
+    function addMetricsToResultsTable() {
+        $("#character-count").text(metrics.character_count.toString());
+        $("#word-count").text(metrics.word_count.toString());
+        $("#vocabulary-size").text(metrics.vocabulary_size.toString());
+        $("#sentence-count").text(metrics.sentence_count.toString());
+        $("#words-per-sentence").text((Math.round(metrics.words_per_sentence * 10) / 10).toString());
+        $("#declarative-ratio").text((Math.round(metrics.declarative_ratio * 1000) / 10).toString() + "%");
+        $("#interrogative-ratio").text((Math.round(metrics.interrogative_ratio * 1000) / 10).toString() + "%");
+        $("#exclamative-ratio").text((Math.round(metrics.exclamative_ratio * 1000) / 10).toString() + "%");
+        $("#stopword-ratio").text((Math.round(metrics.stopword_ratio * 1000) / 10).toString() + "%");
+        $("#syllables-per-word").text((Math.round(metrics.syllables_per_word * 10) / 10).toString());
+        $("#characters-per-word").text((Math.round(metrics.characters_per_word * 10) / 10).toString());
+        $("#readability").text((Math.round(metrics.readability * 10) / 10).toString());
+        $("#noun-ratio").text((Math.round(metrics.noun_ratio * 1000) / 10).toString() + "%");
+        $("#pronoun-ratio").text((Math.round(metrics.pronoun_ratio * 1000) / 10).toString() + "%");
+        $("#verb-ratio").text((Math.round(metrics.verb_ratio * 1000) / 10).toString() + "%");
+        $("#adjective-ratio").text((Math.round(metrics.adjective_ratio * 1000) / 10).toString() + "%");
+        $("#adverb-ratio").text((Math.round(metrics.adverb_ratio * 1000) / 10).toString() + "%");
+        $("#determiner-ratio").text((Math.round(metrics.determiner_ratio * 1000) / 10).toString() + "%");
+        $("#other-pos-ratio").text((Math.round(metrics.other_pos_ratio * 1000) / 10).toString() + "%");
+        $("#word-freq").html(metrics.word_freq);
+        $("#bigram-freq").html(metrics.bigram_freq);
+        $("#trigram-freq").html(metrics.trigram_freq);
+    }
 
     // make a mask for highlighting tokens in text
     function makeTokenMask(metric) {
@@ -191,9 +211,11 @@ $(function(){
         return mask;
     }
 
-    // render tokens into html
+    // render tokens into an html string
     function renderTokensToHtml() {
         var html = "";
+
+        // reformat token masks into a convenient form
         var spanStartTokens = [];
         var spanEndTokens = [];
         for (var i=0; i<tokenMasks.length; i++) {
@@ -213,10 +235,14 @@ $(function(){
             spanStartTokens.push(st);
             spanEndTokens.push(en);
         }
+
+        // form html string token by token
         var idxText = 0;
         var idxTokens = 0;
         var token = tokens.value[idxTokens];
         while (idxText<text.length) {
+
+            // add spaces and new lines between tokens
             while ([32, 10, 160].indexOf(text.charCodeAt(idxText))>=0) {
                 switch (text[idxText]) {
                     case "\n":
@@ -227,13 +253,19 @@ $(function(){
                 }
                 idxText = idxText + 1;
             }
+
+            // add starting points of highlighted spans
             for (var i=0; i<spanStartTokens.length; i++) {
                 if (spanStartTokens[i].indexOf(idxTokens)>=0) {
                     html = html + "<span class=\"nlp-highlighted-" + (i+1).toString() + "\">";
                 }
             }
+
+            // add token itself
             var tokenInText = null;
             if (["``", "''"].indexOf(token)>=0) {
+
+                // special handling of quotation marks
                 if ([34, 171, 187, 8220, 8221, 8222, 8223, 8243, 8246, 12317, 12318].indexOf(text.charCodeAt(idxText))>=0) {
                     tokenInText = text[idxText];
                 } else if (["``", "''"].indexOf(text.slice(idxText, idxText+2))>=0) {
@@ -244,6 +276,8 @@ $(function(){
                     console.log(text.charCodeAt(idxText));
                 }
             } else if (token==String.fromCharCode(8230)) {
+
+                // special handling of the symbol '...'
                 if (text.charCodeAt(idxText)==8230) {
                     tokenInText = token;
                 } else if (text.slice(idxText, idxText+3)=="...") {
@@ -254,19 +288,26 @@ $(function(){
                     console.log(text.charCodeAt(idxText));
                 }
             } else {
+
+                // all other tokens are displayed as is
                 tokenInText = token;
             }
             html = html + tokenInText;
             idxText = idxText + tokenInText.length;
+
+            // add ending points of highlighted spans
             for (var i=0; i<spanEndTokens.length; i++) {
                 if (spanEndTokens[i].indexOf(idxTokens)>=0) {
                     html = html + "</span>";
                 }
             }
+
+            // prepare the next loop iteration
             idxTokens = idxTokens + 1;
             if (idxTokens<tokens.value.length) {
                 token = tokens.value[idxTokens];
             }
+
         }
         return html;
     }
