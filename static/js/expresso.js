@@ -56,7 +56,7 @@ $(function(){
             tokens = null;
             metrics = null;
             modifiedText = true;
-            $(".metric-active").each(function(idx, el){
+            $(".metric-active").each(function(idx, el) {
                 el = $(el);
                 var classes = el.attr("class");
                 if (classes.search("nlp-highlighted-")==-1) {
@@ -88,6 +88,11 @@ $(function(){
                 // put UI in analyzing mode
                 analyzeTextButton.button("loading");
                 resultsTable.hide();
+                $(".metric-active").each(function(idx, el) {
+                    el = $(el);
+                    removeMetricHighlighting(el);
+                });
+                $(".metric").removeClass("metric-active");
 
                 // send text to the server for analysis
                 $.ajax({
@@ -149,16 +154,7 @@ $(function(){
                 } else {
 
                     // if metric is currently highlighted turn it off
-                    var maskNum = parseInt(classes[classes.indexOf("nlp-highlighted-") + 16]) - 1;
-                    var className = "nlp-highlighted-" + (maskNum+1).toString();
-                    tokenMasks[maskNum] = null;
-                    $("span."+className, textField).after("NLP000DELETE");
-                    var html = textField.html();
-                    var spanRe = new RegExp("<span class=\"" + className + "\">", "mgi");
-                    html = html.replace(spanRe, "").replace(/<\/span>NLP000DELETE/mgi, "");
-                    textField.html(html);
-                    activeTokenMasks[maskNum] = false;
-                    el.removeClass(className);
+                    removeMetricHighlighting(el);
                     if (modifiedText) {
                         el.removeClass("metric-active");
                     }
@@ -169,6 +165,23 @@ $(function(){
 
 
     });
+
+    // remove metric highlighting
+    function removeMetricHighlighting(el) {
+        var classes = el.attr("class");
+        if (classes.search("nlp-highlighted-")>=0) {
+            var maskNum = parseInt(classes[classes.indexOf("nlp-highlighted-") + 16]) - 1;
+            var className = "nlp-highlighted-" + (maskNum+1).toString();
+            $("span."+className, textField).after("NLP000DELETE");
+            var html = textField.html();
+            var spanRe = new RegExp("<span class=\"" + className + "\">", "mgi");
+            html = html.replace(spanRe, "").replace(/<\/span>NLP000DELETE/mgi, "");
+            textField.html(html);
+            tokenMasks[maskNum] = null;
+            activeTokenMasks[maskNum] = false;
+            el.removeClass(className);
+        }
+    }
 
     // enter metrics into the results table
     function addMetricsToResultsTable() {
@@ -204,6 +217,64 @@ $(function(){
             case "metric-stopwords":
                 for (var i=0; i<tokens.value.length; i++) {
                     if (tokens.stopword[i]) {
+                        mask.push(i);
+                    }
+                }
+                break;
+
+            case "metric-nouns":
+                for (var i=0; i<tokens.part_of_speech.length; i++) {
+                    console.log(tokens.part_of_speech[i].slice(0, 2));
+                    if (tokens.part_of_speech[i].slice(0, 2)=="NN") {
+                        mask.push(i);
+                    }
+                }
+                break;
+
+            case "metric-pronouns":
+                for (var i=0; i<tokens.part_of_speech.length; i++) {
+                    if (tokens.part_of_speech[i].slice(0, 2)=="PR") {
+                        mask.push(i);
+                    }
+                }
+                break;
+
+            case "metric-verbs":
+                for (var i=0; i<tokens.part_of_speech.length; i++) {
+                    if (tokens.part_of_speech[i].slice(0, 2)=="VB") {
+                        mask.push(i);
+                    }
+                }
+                break;
+
+            case "metric-adjectives":
+                for (var i=0; i<tokens.part_of_speech.length; i++) {
+                    if (tokens.part_of_speech[i].slice(0, 2)=="JJ") {
+                        mask.push(i);
+                    }
+                }
+                break;
+
+            case "metric-adverbs":
+                for (var i=0; i<tokens.part_of_speech.length; i++) {
+                    if (tokens.part_of_speech[i].slice(0, 2)=="RB") {
+                        mask.push(i);
+                    }
+                }
+                break;
+
+            case "metric-determiners":
+                for (var i=0; i<tokens.part_of_speech.length; i++) {
+                    if (["DT", "WD", "WP", "WR"].indexOf(tokens.part_of_speech[i].slice(0, 2))>=0) {
+                        mask.push(i);
+                    }
+                }
+                break;
+
+            case "metric-other-pos":
+                for (var i=0; i<tokens.part_of_speech.length; i++) {
+                    if ((tokens.number_of_characters[i]) &&
+                        (["NN", "PR", "VB", "JJ", "RB", "DT", "WD", "WP", "WR"].indexOf(tokens.part_of_speech[i].slice(0, 2))==-1)) {
                         mask.push(i);
                     }
                 }
