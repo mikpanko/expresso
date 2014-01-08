@@ -173,7 +173,8 @@ $(function(){
 
                         // add a highlight
                         var maskNum = activeTokenMasks.indexOf(false);
-                        tokenMasks[maskNum] = makeTokenMask(el.data("metric"), el.data("metric-data"));
+                        //tokenMasks[maskNum] = makeTokenMask(el.data("metric"), el.data("metric-data"));
+                        tokenMasks[maskNum] = makeTokenMask(el.attr("data-metric"), el.attr("data-metric-data"));
                         textField.html(renderTokensToHtml());
                         activeTokenMasks[maskNum] = true;
                         el.addClass("nlp-highlighted-" + (maskNum+1).toString());
