@@ -21,12 +21,16 @@ p, td {
     content: '';
 }
 
+.navbar-toggle {
+    cursor: pointer;
+}
+
 .metric-active {
     color: #1e0fbe;
+    cursor: pointer;
 }
 
 .metric-active:hover {
-    cursor: pointer;
     text-decoration: underline;
 }
 
