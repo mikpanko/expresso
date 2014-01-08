@@ -239,7 +239,17 @@ $(function(){
                            metrics.word_freq[i][1].toString() + ')<br>';
         }
         $("#word-freq").html(freqWordHtml.slice(0, freqWordHtml.length-4));
-        $("#bigram-freq").html(metrics.bigram_freq);
+        for (var i=0; i<metrics.bigram_freq.length; i++) {
+            $("#bigram-freq").append('<span class="metric" id="tmp-metric">' + metrics.bigram_freq[i][0][0] + ' ' +
+                                     metrics.bigram_freq[i][0][1] + '</span> (' + metrics.bigram_freq[i][1].toString() +
+                                     ')');
+            $("#tmp-metric").data('metric', 'bigram-freq');
+            $("#tmp-metric").data('metric-data', metrics.bigram_freq[i][0]);
+            $("#tmp-metric").removeAttr('id');
+            if (i < metrics.bigram_freq.length-1) {
+                $("#bigram-freq").append('<br>');
+            }
+        }
         $("#trigram-freq").html(metrics.trigram_freq);
     }
 
@@ -375,6 +385,34 @@ $(function(){
                 for (var i=0; i<tokens.stem.length; i++) {
                     if (tokens.stem[i]==data) {
                         mask.push(i);
+                    }
+                }
+                break;
+
+            case "bigram-freq":
+                console.log(metric);
+                console.log(data);
+                var span = [0, 0];
+                var count = 0;
+                for (var i=0; i<tokens.stem.length; i++) {
+                    if ((count>0) && (tokens.stem[i]==data[count])) {
+                        count = count + 1;
+                        console.log(i, count);
+                        if (count==2) {
+                            span[1] = i;
+                            console.log(span);
+                            console.log(mask);
+                            mask.push(span);
+                            console.log(mask);
+                            count = 0;
+                        }
+                    } else if (tokens.stem[i]==data[0]) {
+                        count = 1;
+                        console.log(i, count);
+                        span[0] = i;
+                        console.log(span);
+                    } else {
+                        count = 0;
                     }
                 }
                 break;

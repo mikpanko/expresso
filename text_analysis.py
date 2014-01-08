@@ -217,9 +217,10 @@ def analyze_text(html, app):
     sorted_bigram_freq = [bigram for bigram in sorted_bigram_freq if
                           (bigram[1] > 1) and (bigram[0][0] not in stopset) and (bigram[0][1] not in stopset)]
     sorted_bigram_freq = sorted_bigram_freq[:min(len(sorted_bigram_freq), 10)]
-    sorted_bigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' (' + str(y[1]) + ')<br>',
-                                sorted_bigram_freq, '')
-    metrics['bigram_freq'] = sorted_bigram_freq[:-4]
+    metrics['bigram_freq'] = sorted_bigram_freq
+    #sorted_bigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' (' + str(y[1]) + ')<br>',
+    #                            sorted_bigram_freq, '')
+    #metrics['bigram_freq'] = sorted_bigram_freq[:-4]
 
     # prepare string displaying trigram frequencies
     sorted_trigram_freq = sorted(trigram_freq.iteritems(), key=operator.itemgetter(1))
