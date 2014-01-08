@@ -34,9 +34,9 @@ def analyze_text(html, app):
     text = quotation_re.sub('"', original_text)
 
     # tokenize text into sentences
-    tmpText = text.replace('"', '0"')
+    tmpText = text.replace('"', '0"').replace(')', '0)').replace(']', '0]')
     sents_draft = nltk.sent_tokenize(tmpText)
-    sents_draft = [sent.replace('0"', '"') for sent in sents_draft]
+    sents_draft = [sent.replace('0"', '"').replace('0)', ')').replace('0]', ']') for sent in sents_draft]
 
     # separate sentences at ellipsis characters correctly
     sents = []
