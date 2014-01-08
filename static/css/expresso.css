@@ -99,3 +99,7 @@ p, td {
     min-height: 200px;
     outline: none;
 }
+
+#spinner-container {
+    height: 400px;
+}

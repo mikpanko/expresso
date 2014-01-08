@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block javascript %}
+    <script type="text/javascript" src="/static/spin/spin.min.js"></script>
     <script type="text/javascript" src="/static/js/expresso.js"></script>
 {% endblock %}
 
@@ -17,6 +18,7 @@
             <div class="col-md-4">
                 <button type="button" class="btn btn-primary btn-lg btn-block" data-loading-text="Analyzing..."
                         id="analyze-text"><span class="glyphicon glyphicon-search"></span> Analyze text</button>
+                <div id="spinner-container"> </div>
                 <table class="table table-bordered table-hover text-medium" id="results-table">
                     <tr> <td>characters</td> <td id="character-count"></td> </tr>
                     <tr> <td>words</td> <td id="word-count"></td> </tr>
