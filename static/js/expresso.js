@@ -202,7 +202,7 @@ $(function(){
         $("#verb-ratio").text((Math.round(metrics.verb_ratio * 1000) / 10).toString() + "%");
         $("#adjective-ratio").text((Math.round(metrics.adjective_ratio * 1000) / 10).toString() + "%");
         $("#adverb-ratio").text((Math.round(metrics.adverb_ratio * 1000) / 10).toString() + "%");
-        $("#determiner-ratio").text((Math.round(metrics.determiner_ratio * 1000) / 10).toString() + "%");
+        $("#modal-ratio").text((Math.round(metrics.modal_ratio * 1000) / 10).toString() + "%");
         $("#other-pos-ratio").text((Math.round(metrics.other_pos_ratio * 1000) / 10).toString() + "%");
         $("#word-freq").html(metrics.word_freq);
         $("#bigram-freq").html(metrics.bigram_freq);
@@ -233,7 +233,7 @@ $(function(){
 
             case "metric-pronouns":
                 for (var i=0; i<tokens.part_of_speech.length; i++) {
-                    if (tokens.part_of_speech[i].slice(0, 2)=="PR") {
+                    if (["PR", "WP"].indexOf(tokens.part_of_speech[i].slice(0, 2))>=0) {
                         mask.push(i);
                     }
                 }
@@ -263,9 +263,9 @@ $(function(){
                 }
                 break;
 
-            case "metric-determiners":
+            case "metric-modals":
                 for (var i=0; i<tokens.part_of_speech.length; i++) {
-                    if (["DT", "WD", "WP", "WR"].indexOf(tokens.part_of_speech[i].slice(0, 2))>=0) {
+                    if (tokens.part_of_speech[i].slice(0, 2)=="MD") {
                         mask.push(i);
                     }
                 }
@@ -274,7 +274,7 @@ $(function(){
             case "metric-other-pos":
                 for (var i=0; i<tokens.part_of_speech.length; i++) {
                     if ((tokens.number_of_characters[i]) &&
-                        (["NN", "PR", "VB", "JJ", "RB", "DT", "WD", "WP", "WR"].indexOf(tokens.part_of_speech[i].slice(0, 2))==-1)) {
+                        (["NN", "PR", "WP", "VB", "JJ", "RB", "MD"].indexOf(tokens.part_of_speech[i].slice(0, 2))==-1)) {
                         mask.push(i);
                     }
                 }

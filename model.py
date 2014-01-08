@@ -23,7 +23,7 @@ class Text(Model):
     verb_ratio = FloatField()
     adjective_ratio = FloatField()
     adverb_ratio = FloatField()
-    determiner_ratio = FloatField()
+    modal_ratio = FloatField()
     other_pos_ratio = FloatField()
     word_freq = TextField()
     bigram_freq = TextField()
