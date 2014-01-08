@@ -155,7 +155,7 @@ $(function(){
         });
 
         // handle clicking on metrics
-        $(".metric").click(function() {
+        $(document).on("click", ".metric", function() {
             var el = $(this);
 
             // only work with active metrics (text hasn't changed since last analysis)
@@ -173,7 +173,7 @@ $(function(){
 
                         // add a highlight
                         var maskNum = activeTokenMasks.indexOf(false);
-                        tokenMasks[maskNum] = makeTokenMask(el.attr("id"));
+                        tokenMasks[maskNum] = makeTokenMask(el.data("metric"), el.data("metric-data"));
                         textField.html(renderTokensToHtml());
                         activeTokenMasks[maskNum] = true;
                         el.addClass("nlp-highlighted-" + (maskNum+1).toString());
@@ -232,17 +232,23 @@ $(function(){
         $("#adverb-ratio").text((Math.round(metrics.adverb_ratio * 1000) / 10).toString() + "%");
         $("#modal-ratio").text((Math.round(metrics.modal_ratio * 1000) / 10).toString() + "%");
         $("#other-pos-ratio").text((Math.round(metrics.other_pos_ratio * 1000) / 10).toString() + "%");
-        $("#word-freq").html(metrics.word_freq);
+        var freqWordHtml = "";
+        for (var i=0; i<metrics.word_freq.length; i++) {
+            freqWordHtml = freqWordHtml + '<span class="metric" data-metric="word-freq" data-metric-data="' +
+                           metrics.word_freq[i][0] + '">' + metrics.word_freq[i][0] + '</span> (' +
+                           metrics.word_freq[i][1].toString() + ')<br>';
+        }
+        $("#word-freq").html(freqWordHtml.slice(0, freqWordHtml.length-4));
         $("#bigram-freq").html(metrics.bigram_freq);
         $("#trigram-freq").html(metrics.trigram_freq);
     }
 
     // make a mask for highlighting tokens in text
-    function makeTokenMask(metric) {
+    function makeTokenMask(metric, data) {
         var mask = [];
         switch (metric) {
 
-            case "metric-stopwords":
+            case "stopwords":
                 for (var i=0; i<tokens.value.length; i++) {
                     if (tokens.stopword[i]) {
                         mask.push(i);
@@ -250,7 +256,7 @@ $(function(){
                 }
                 break;
 
-            case "metric-nouns":
+            case "nouns":
                 for (var i=0; i<tokens.part_of_speech.length; i++) {
                     console.log(tokens.part_of_speech[i].slice(0, 2));
                     if (tokens.part_of_speech[i].slice(0, 2)=="NN") {
@@ -259,7 +265,7 @@ $(function(){
                 }
                 break;
 
-            case "metric-pronouns":
+            case "pronouns":
                 for (var i=0; i<tokens.part_of_speech.length; i++) {
                     if (["PR", "WP"].indexOf(tokens.part_of_speech[i].slice(0, 2))>=0) {
                         mask.push(i);
@@ -267,7 +273,7 @@ $(function(){
                 }
                 break;
 
-            case "metric-verbs":
+            case "verbs":
                 for (var i=0; i<tokens.part_of_speech.length; i++) {
                     if (tokens.part_of_speech[i].slice(0, 2)=="VB") {
                         mask.push(i);
@@ -275,7 +281,7 @@ $(function(){
                 }
                 break;
 
-            case "metric-adjectives":
+            case "adjectives":
                 for (var i=0; i<tokens.part_of_speech.length; i++) {
                     if (tokens.part_of_speech[i].slice(0, 2)=="JJ") {
                         mask.push(i);
@@ -283,7 +289,7 @@ $(function(){
                 }
                 break;
 
-            case "metric-adverbs":
+            case "adverbs":
                 for (var i=0; i<tokens.part_of_speech.length; i++) {
                     if (tokens.part_of_speech[i].slice(0, 2)=="RB") {
                         mask.push(i);
@@ -291,7 +297,7 @@ $(function(){
                 }
                 break;
 
-            case "metric-modals":
+            case "modals":
                 for (var i=0; i<tokens.part_of_speech.length; i++) {
                     if (tokens.part_of_speech[i].slice(0, 2)=="MD") {
                         mask.push(i);
@@ -299,7 +305,7 @@ $(function(){
                 }
                 break;
 
-            case "metric-other-pos":
+            case "other-pos":
                 for (var i=0; i<tokens.part_of_speech.length; i++) {
                     if ((tokens.number_of_characters[i]) &&
                         (["NN", "PR", "WP", "VB", "JJ", "RB", "MD"].indexOf(tokens.part_of_speech[i].slice(0, 2))==-1)) {
@@ -308,7 +314,7 @@ $(function(){
                 }
                 break;
 
-            case "metric-declar-sents":
+            case "declar-sents":
                 var span = [0, null];
                 var validSent = ([".", "..."].indexOf(tokens.sentence_end_punctuation[0])>=0);
                 for (var i=1; i<tokens.sentence_number.length; i++) {
@@ -327,7 +333,7 @@ $(function(){
                 }
                 break;
 
-            case "metric-inter-sents":
+            case "inter-sents":
                 var span = [0, null];
                 var validSent = (tokens.sentence_end_punctuation[0]=="?");
                 for (var i=1; i<tokens.sentence_number.length; i++) {
@@ -346,7 +352,7 @@ $(function(){
                 }
                 break;
 
-            case "metric-exclam-sents":
+            case "exclam-sents":
                 var span = [0, null];
                 var validSent = (tokens.sentence_end_punctuation[0]=="!");
                 for (var i=1; i<tokens.sentence_number.length; i++) {
@@ -362,6 +368,14 @@ $(function(){
                 span[1] = tokens.sentence_number.length - 1;
                 if (validSent) {
                     mask.push(span);
+                }
+                break;
+
+            case "word-freq":
+                for (var i=0; i<tokens.stem.length; i++) {
+                    if (tokens.stem[i]==data) {
+                        mask.push(i);
+                    }
                 }
                 break;
 

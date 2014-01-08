@@ -207,8 +207,9 @@ def analyze_text(html, app):
     sorted_word_freq.reverse()
     sorted_word_freq = [word for word in sorted_word_freq if (word[1] > 1) and (word[0] not in stopset)]
     sorted_word_freq = sorted_word_freq[:min(len(sorted_word_freq), 10)]
-    sorted_word_freq = reduce(lambda x, y: x + y[0] + ' (' + str(y[1]) + ')<br>', sorted_word_freq, '')
-    metrics['word_freq'] = sorted_word_freq[:-4]
+    metrics['word_freq'] = sorted_word_freq
+    #sorted_word_freq = reduce(lambda x, y: x + y[0] + ' (' + str(y[1]) + ')<br>', sorted_word_freq, '')
+    #metrics['word_freq'] = sorted_word_freq[:-4]
 
     # prepare string displaying bigram frequencies
     sorted_bigram_freq = sorted(bigram_freq.iteritems(), key=operator.itemgetter(1))
