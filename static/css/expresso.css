@@ -35,22 +35,58 @@ p, td {
 }
 
 .nlp-highlighted-1 {
-    background-color: rgba(255, 255, 0, 0.5);
+    background-color: rgba(77, 175, 74, 0.5);
 }
 
 .nlp-highlighted-2 {
-    background-color: rgba(0, 255, 255, 0.5);
+    background-color: rgba(55, 126, 184, 0.5);
 }
 
 .nlp-highlighted-3 {
-    background-color: rgba(0, 255, 0, 0.5);
+    background-color: rgba(228, 26, 28, 0.5);
 }
 
 .nlp-highlighted-4 {
-    background-color: rgba(255, 0, 255, 0.5);
+    background-color: rgba(152, 78, 163, 0.5);
 }
 
 .nlp-highlighted-5 {
+    background-color: rgba(255, 127, 0, 0.5);
+}
+
+.nlp-highlighted-6 {
+    background-color: rgba(255, 255, 51, 0.5);
+}
+
+.nlp-highlighted-7 {
+    background-color: rgba(166, 86, 40, 0.5);
+}
+
+.nlp-highlighted-8 {
+    background-color: rgba(247, 129, 191, 0.5);
+}
+
+.nlp-highlighted-9 {
+    background-color: rgba(153, 153, 153, 0.5);
+}
+
+.old-nlp-highlighted-1 {
+    background-color: rgba(255, 255, 0, 0.5);
+}
+
+.old-nlp-highlighted-2 {
+    background-color: rgba(0, 255, 255, 0.5);
+}
+
+.old-nlp-highlighted-3 {
+    background-color: rgba(0, 255, 0, 0.5);
+}
+
+.old-nlp-highlighted-4 {
+    background-color: rgba(255, 0, 255, 0.5);
+}
+
+.old-nlp-highlighted-5 {
     background-color: rgba(255, 0, 0, 0.5);
 }
 

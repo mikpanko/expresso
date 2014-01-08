@@ -1,8 +1,8 @@
 var text = null;
 var tokens = null;
 var metrics = null;
-var tokenMasks = [null, null, null, null, null];
-var activeTokenMasks = [false, false, false, false, false];
+var tokenMasks = [null, null, null, null, null, null, null, null, null];
+var activeTokenMasks = [false, false, false, false, false, false, false, false, false];
 var modifiedText = false;
 var textField = null;
 var resultsTable = null;
