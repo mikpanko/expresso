@@ -119,9 +119,11 @@ $(function(){
                     error: function(request, textStatus, error) {
 
                         // error - display a message
-                        alert("Cannot analyze text: " + error);
+                        showAlert("Cannot analyze text: " + error);
                     }
                 });
+            } else {
+                showAlert("Enter valid text to analyze.");
             }
 
         });
@@ -139,7 +141,7 @@ $(function(){
                     if (activeTokenMasks.indexOf(false)==-1) {
 
                         // all possible highlights are used on other metrics
-                        alert("Used all possible highlights! Please, unselect one before adding another.");
+                        showAlert("Used all possible highlights! Please, unselect some before adding more.");
 
                     } else {
 
@@ -457,6 +459,13 @@ $(function(){
         $("span.nlp-highlighted", el).before("HIGHLIGHT000START").after("HIGHLIGHT000END");
         return el.text().trim().replace(/\n/mgi, "<br>").replace(/HIGHLIGHT000START/mgi, "<span class=\"nlp-highlighted\">")
             .replace(/HIGHLIGHT000END/mgi, "</span>");
+    }
+
+    // show alert
+    function showAlert(alertStr) {
+        var alertStartCode = '<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>';
+        var alertEndCode = '</div>';
+        $("#alert-container").append(alertStartCode + alertStr + alertEndCode);
     }
 
 });
