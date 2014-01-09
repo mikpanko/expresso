@@ -24,9 +24,11 @@ $(function(){
         resultsTable.hide();
 
         // set column heights to screensize
-        var columnHeight = $(window).height() - 80;
-        $('.column-left').height(columnHeight + 'px');
-        $('.column-right').height(columnHeight + 'px');
+        if ($(window).width() >= 992) {
+            var columnHeight = $(window).height() - 80;
+            $('.column-left').css('height', columnHeight + 'px');
+            $('.column-right').css('height', columnHeight + 'px');
+        }
 
         // create loading state spinner
         var spinnerOpts = {
@@ -53,6 +55,18 @@ $(function(){
         // get rid of active state on the mobile menu button
         $(".navbar-toggle").on("click", function() {
             $(this).blur();
+        });
+
+        // adjust column heights on screen resize
+        $(window).resize(function() {
+            if ($(this).width() >= 992) {
+                var columnHeight = $(window).height() - 80;
+                $('.column-left').css('height', columnHeight + 'px');
+                $('.column-right').css('height', columnHeight + 'px');
+            } else {
+                $('.column-left').css('height', '');
+                $('.column-right').css('height', '');
+            }
         });
 
         // handle text placeholder behavior
