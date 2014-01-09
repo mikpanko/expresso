@@ -80,6 +80,12 @@ def analyze_text(html, app):
     sents_tokens_tags = nltk.batch_pos_tag(sents_tokens)
     data['part_of_speech'] = [pos for sent in sents_tokens_tags for (token, pos) in sent]
 
+    # fix symbol tags
+    for idx, token in enumerate(tokens):
+        app.logger.debug('%s', token)
+        if (not token[0].isalnum()) and (data['part_of_speech'][idx].isalnum()):
+            app.logger.debug('not isalnum')
+            data['part_of_speech'][idx] = 'SYM'
 
     ### compute metrics on parsed data
 
@@ -169,22 +175,21 @@ def analyze_text(html, app):
     adjective_count = 0
     adverb_count = 0
     modal_count = 0
-    for sent in sents_tokens_tags:
-        for tag in sent:
-            if tag[1][:2] == 'NN':
-                noun_count += 1
-            elif tag[1][:2] in ['PR', 'WP', 'EX']:
-                pronoun_count += 1
-                if tag[1] in ['PRP', 'WP', 'EX']:
-                    pronoun_nonpossesive_count += 1
-            elif tag[1][:2] == 'VB':
-                verb_count += 1
-            elif tag[1][:2] == 'JJ':
-                adjective_count += 1
-            elif tag[1][:2] == 'RB':
-                adverb_count += 1
-            elif tag[1][:2] == 'MD':
-                modal_count += 1
+    for tag in data['part_of_speech']:
+        if tag[:2] == 'NN':
+            noun_count += 1
+        elif tag[:2] in ['PR', 'WP', 'EX']:
+            pronoun_count += 1
+            if tag in ['PRP', 'WP', 'EX']:
+                pronoun_nonpossesive_count += 1
+        elif tag[:2] == 'VB':
+            verb_count += 1
+        elif tag[:2] == 'JJ':
+            adjective_count += 1
+        elif tag[:2] == 'RB':
+            adverb_count += 1
+        elif tag[:2] == 'MD':
+            modal_count += 1
     if metrics['word_count']:
         metrics['noun_ratio'] = noun_count / metrics['word_count']
         metrics['pronoun_ratio'] = pronoun_count / metrics['word_count']
@@ -212,22 +217,23 @@ def analyze_text(html, app):
         data['nominalizations'][idx] = (data['number_of_characters'][idx] > 7) and (nominalization_re.search(word) != None)
         data['weak_verbs'][idx] = (data['part_of_speech'][idx][:2] == 'VB') and (data['stem'][idx] in weak_verbs)
         data['entity_substitutions'][idx] = (word in ['it', 'they', 'them', 'this', 'that', 'there', 'here'])
-        if word == 'that':
+        if word in ['this', 'that']:
             if (idx > 0) and (data['part_of_speech'][idx-1][:2] in ['NN', 'PR']):
                 data['entity_substitutions'][idx] = False
-            if (idx < len(tokens)) and ((data['part_of_speech'][idx+1][:2] in ['NN', 'PR', 'WP']) or
-                                        (tokens[idx+1] in ['there', 'that', 'this', 'here'])):
+            if (idx < len(tokens)) and ((data['part_of_speech'][idx+1][:2] in ['NN', 'PR', 'WP', 'JJ', 'DT', 'WD', 'WP'])
+                                        or (tokens[idx+1] in ['there', 'that', 'this', 'here'])):
                 data['entity_substitutions'][idx] = False
-    if metrics['word_count']:
+    if (noun_count + pronoun_nonpossesive_count) > 0:
         metrics['nominalization_ratio'] = data['nominalizations'].count(True) / (noun_count + pronoun_nonpossesive_count)
-        metrics['weak_verb_ratio'] = data['weak_verbs'].count(True) / verb_count
         metrics['entity_substitution_ratio'] = data['entity_substitutions'].count(True) / (noun_count +
                                                                                            pronoun_nonpossesive_count)
     else:
         metrics['nominalization_ratio'] = 0
-        metrics['weak_verb_ratio'] = 0
         metrics['entity_substitution_ratio'] = 0
-
+    if verb_count > 0:
+        metrics['weak_verb_ratio'] = data['weak_verbs'].count(True) / verb_count
+    else:
+        metrics['weak_verb_ratio'] = 0
     # count word, bigram, and trigram frequencies
     bcf = nltk.TrigramCollocationFinder.from_words(stems)
     word_freq = bcf.word_fd
