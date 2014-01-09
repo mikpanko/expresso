@@ -250,7 +250,17 @@ $(function(){
                 $("#bigram-freq").append('<br>');
             }
         }
-        $("#trigram-freq").html(metrics.trigram_freq);
+        for (var i=0; i<metrics.trigram_freq.length; i++) {
+            $("#trigram-freq").append('<span class="metric" id="tmp-metric">' + metrics.trigram_freq[i][0][0] + ' ' +
+                                     metrics.trigram_freq[i][0][1] + ' ' + metrics.trigram_freq[i][0][2] + '</span> (' +
+                                     metrics.trigram_freq[i][1].toString() + ')');
+            $("#tmp-metric").data('metric', 'trigram-freq');
+            $("#tmp-metric").data('metric-data', metrics.trigram_freq[i][0]);
+            $("#tmp-metric").removeAttr('id');
+            if (i < metrics.trigram_freq.length-1) {
+                $("#trigram-freq").append('<br>');
+            }
+        }
     }
 
     // make a mask for highlighting tokens in text
@@ -393,6 +403,8 @@ $(function(){
                 console.log(metric);
                 console.log(data);
                 var span = [0, 0];
+                console.log(Object.prototype.toString.call(span));
+                console.log(Object.prototype.toString.call(mask));
                 var count = 0;
                 for (var i=0; i<tokens.stem.length; i++) {
                     if ((count>0) && (tokens.stem[i]==data[count])) {
@@ -405,13 +417,35 @@ $(function(){
                             mask.push(span);
                             console.log(mask);
                             count = 0;
+                            span = [0, 0];
                         }
                     } else if (tokens.stem[i]==data[0]) {
                         count = 1;
                         console.log(i, count);
                         span[0] = i;
                         console.log(span);
-                    } else {
+                    } else if (tokens.stem[i]) {
+                        count = 0;
+                    }
+                }
+                break;
+
+            case "trigram-freq":
+                var span = [0, 0];
+                var count = 0;
+                for (var i=0; i<tokens.stem.length; i++) {
+                    if ((count>0) && (tokens.stem[i]==data[count])) {
+                        count = count + 1;
+                        if (count==3) {
+                            span[1] = i;
+                            mask.push(span);
+                            count = 0;
+                            span = [0, 0];
+                        }
+                    } else if (tokens.stem[i]==data[0]) {
+                        count = 1;
+                        span[0] = i;
+                    } else if (tokens.stem[i]) {
                         count = 0;
                     }
                 }

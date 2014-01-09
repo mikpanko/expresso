@@ -227,8 +227,9 @@ def analyze_text(html, app):
     sorted_trigram_freq.reverse()
     sorted_trigram_freq = [trigram for trigram in sorted_trigram_freq if trigram[1] > 1]
     sorted_trigram_freq = sorted_trigram_freq[:min(len(trigram_freq), 10)]
-    sorted_trigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' ' + y[0][2] + ' (' + str(y[1]) + ')<br>',
-                                 sorted_trigram_freq, '')
-    metrics['trigram_freq'] = sorted_trigram_freq[:-4]
+    metrics['trigram_freq'] = sorted_trigram_freq
+    #sorted_trigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' ' + y[0][2] + ' (' + str(y[1]) + ')<br>',
+    #                             sorted_trigram_freq, '')
+    #metrics['trigram_freq'] = sorted_trigram_freq[:-4]
 
     return original_text, data, metrics
