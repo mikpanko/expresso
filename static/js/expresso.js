@@ -23,6 +23,11 @@ $(function(){
         // hide results table
         resultsTable.hide();
 
+        // set column heights to screensize
+        var columnHeight = $(window).height() - 80;
+        $('.column-left').height(columnHeight + 'px');
+        $('.column-right').height(columnHeight + 'px');
+
         // create loading state spinner
         var spinnerOpts = {
             lines: 13, // The number of lines to draw
