@@ -1,4 +1,5 @@
 from __future__ import division
+import os
 import nltk
 import re
 from bs4 import BeautifulSoup
@@ -8,9 +9,12 @@ import operator
 html_newline_re = re.compile('(<br|</div|</p)')
 quotation_re = re.compile(u'[\u00AB\u00BB\u201C\u201D\u201E\u201F\u2033\u2036\u301D\u301E]')
 ellipsis_re = re.compile('\.\.\.[" ]+[A-Z]')
+nominalization_re = re.compile('(?:ion|ions|ism|isms|ty|ties|ment|ments|ness|nesses|ance|ances|ence|ences)$')
 stopset = set(nltk.corpus.stopwords.words('english'))
 stemmer = nltk.PorterStemmer()
 cmudict = nltk.corpus.cmudict.dict()
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/weak-verbs')) as f:
+    weak_verbs = f.read().splitlines()
 
 
 def analyze_text(html, app):
@@ -160,6 +164,7 @@ def analyze_text(html, app):
     # count number of different parts of speech
     noun_count = 0
     pronoun_count = 0
+    pronoun_nonpossesive_count = 0
     verb_count = 0
     adjective_count = 0
     adverb_count = 0
@@ -168,8 +173,10 @@ def analyze_text(html, app):
         for tag in sent:
             if tag[1][:2] == 'NN':
                 noun_count += 1
-            elif tag[1][:2] in ['PR', 'WP']:
+            elif tag[1][:2] in ['PR', 'WP', 'EX']:
                 pronoun_count += 1
+                if tag[1] in ['PRP', 'WP', 'EX']:
+                    pronoun_nonpossesive_count += 1
             elif tag[1][:2] == 'VB':
                 verb_count += 1
             elif tag[1][:2] == 'JJ':
@@ -196,6 +203,31 @@ def analyze_text(html, app):
         metrics['modal_ratio'] = 0
         metrics['other_pos_ratio'] = 0
 
+    # find nominalizations, weak verbs, and entity substitutes
+    data['nominalizations'] = [None] * len(tokens)
+    data['weak_verbs'] = [None] * len(tokens)
+    data['entity_substitutions'] = [None] * len(tokens)
+    for idx_word, word in enumerate(words):
+        idx = word2token_map[idx_word]
+        data['nominalizations'][idx] = (data['number_of_characters'][idx] > 7) and (nominalization_re.search(word) != None)
+        data['weak_verbs'][idx] = (data['part_of_speech'][idx][:2] == 'VB') and (data['stem'][idx] in weak_verbs)
+        data['entity_substitutions'][idx] = (word in ['it', 'they', 'them', 'this', 'that', 'there', 'here'])
+        if word == 'that':
+            if (idx > 0) and (data['part_of_speech'][idx-1][:2] in ['NN', 'PR']):
+                data['entity_substitutions'][idx] = False
+            if (idx < len(tokens)) and ((data['part_of_speech'][idx+1][:2] in ['NN', 'PR', 'WP']) or
+                                        (tokens[idx+1] in ['there', 'that', 'this', 'here'])):
+                data['entity_substitutions'][idx] = False
+    if metrics['word_count']:
+        metrics['nominalization_ratio'] = data['nominalizations'].count(True) / (noun_count + pronoun_nonpossesive_count)
+        metrics['weak_verb_ratio'] = data['weak_verbs'].count(True) / verb_count
+        metrics['entity_substitution_ratio'] = data['entity_substitutions'].count(True) / (noun_count +
+                                                                                           pronoun_nonpossesive_count)
+    else:
+        metrics['nominalization_ratio'] = 0
+        metrics['weak_verb_ratio'] = 0
+        metrics['entity_substitution_ratio'] = 0
+
     # count word, bigram, and trigram frequencies
     bcf = nltk.TrigramCollocationFinder.from_words(stems)
     word_freq = bcf.word_fd
@@ -208,8 +240,6 @@ def analyze_text(html, app):
     sorted_word_freq = [word for word in sorted_word_freq if (word[1] > 1) and (word[0] not in stopset)]
     sorted_word_freq = sorted_word_freq[:min(len(sorted_word_freq), 10)]
     metrics['word_freq'] = sorted_word_freq
-    #sorted_word_freq = reduce(lambda x, y: x + y[0] + ' (' + str(y[1]) + ')<br>', sorted_word_freq, '')
-    #metrics['word_freq'] = sorted_word_freq[:-4]
 
     # prepare string displaying bigram frequencies
     sorted_bigram_freq = sorted(bigram_freq.iteritems(), key=operator.itemgetter(1))
@@ -218,9 +248,6 @@ def analyze_text(html, app):
                           (bigram[1] > 1) and (bigram[0][0] not in stopset) and (bigram[0][1] not in stopset)]
     sorted_bigram_freq = sorted_bigram_freq[:min(len(sorted_bigram_freq), 10)]
     metrics['bigram_freq'] = sorted_bigram_freq
-    #sorted_bigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' (' + str(y[1]) + ')<br>',
-    #                            sorted_bigram_freq, '')
-    #metrics['bigram_freq'] = sorted_bigram_freq[:-4]
 
     # prepare string displaying trigram frequencies
     sorted_trigram_freq = sorted(trigram_freq.iteritems(), key=operator.itemgetter(1))
@@ -228,8 +255,5 @@ def analyze_text(html, app):
     sorted_trigram_freq = [trigram for trigram in sorted_trigram_freq if trigram[1] > 1]
     sorted_trigram_freq = sorted_trigram_freq[:min(len(trigram_freq), 10)]
     metrics['trigram_freq'] = sorted_trigram_freq
-    #sorted_trigram_freq = reduce(lambda x, y: x + y[0][0] + ' ' + y[0][1] + ' ' + y[0][2] + ' (' + str(y[1]) + ')<br>',
-    #                             sorted_trigram_freq, '')
-    #metrics['trigram_freq'] = sorted_trigram_freq[:-4]
 
     return original_text, data, metrics

@@ -78,26 +78,6 @@ p, td {
     background-color: rgba(153, 153, 153, 0.5);
 }
 
-.old-nlp-highlighted-1 {
-    background-color: rgba(255, 255, 0, 0.5);
-}
-
-.old-nlp-highlighted-2 {
-    background-color: rgba(0, 255, 255, 0.5);
-}
-
-.old-nlp-highlighted-3 {
-    background-color: rgba(0, 255, 0, 0.5);
-}
-
-.old-nlp-highlighted-4 {
-    background-color: rgba(255, 0, 255, 0.5);
-}
-
-.old-nlp-highlighted-5 {
-    background-color: rgba(255, 0, 0, 0.5);
-}
-
 #analyze-text {
     margin-bottom: 50px;
 }

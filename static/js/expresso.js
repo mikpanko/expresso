@@ -251,6 +251,9 @@ $(function(){
         $("#adverb-ratio").text((Math.round(metrics.adverb_ratio * 1000) / 10).toString() + "%");
         $("#modal-ratio").text((Math.round(metrics.modal_ratio * 1000) / 10).toString() + "%");
         $("#other-pos-ratio").text((Math.round(metrics.other_pos_ratio * 1000) / 10).toString() + "%");
+        $("#nominalization-ratio").text((Math.round(metrics.nominalization_ratio * 1000) / 10).toString() + "%");
+        $("#weak-verb-ratio").text((Math.round(metrics.weak_verb_ratio * 1000) / 10).toString() + "%");
+        $("#entity-substitution-ratio").text((Math.round(metrics.entity_substitution_ratio * 1000) / 10).toString() + "%");
         var freqWordHtml = "";
         for (var i=0; i<metrics.word_freq.length; i++) {
             freqWordHtml = freqWordHtml + '<span class="metric" data-metric="word-freq" data-metric-data="' +
@@ -297,7 +300,6 @@ $(function(){
 
             case "nouns":
                 for (var i=0; i<tokens.part_of_speech.length; i++) {
-                    console.log(tokens.part_of_speech[i].slice(0, 2));
                     if (tokens.part_of_speech[i].slice(0, 2)=="NN") {
                         mask.push(i);
                     }
@@ -306,7 +308,7 @@ $(function(){
 
             case "pronouns":
                 for (var i=0; i<tokens.part_of_speech.length; i++) {
-                    if (["PR", "WP"].indexOf(tokens.part_of_speech[i].slice(0, 2))>=0) {
+                    if (["PR", "WP", "EX"].indexOf(tokens.part_of_speech[i].slice(0, 2))>=0) {
                         mask.push(i);
                     }
                 }
@@ -410,6 +412,30 @@ $(function(){
                 }
                 break;
 
+            case "nominalizations":
+                for (var i=0; i<tokens.value.length; i++) {
+                    if (tokens.nominalizations[i]) {
+                        mask.push(i);
+                    }
+                }
+                break;
+
+            case "weak-verbs":
+                for (var i=0; i<tokens.value.length; i++) {
+                    if (tokens.weak_verbs[i]) {
+                        mask.push(i);
+                    }
+                }
+                break;
+
+            case "entity-substitutions":
+                for (var i=0; i<tokens.value.length; i++) {
+                    if (tokens.entity_substitutions[i]) {
+                        mask.push(i);
+                    }
+                }
+                break;
+
             case "word-freq":
                 for (var i=0; i<tokens.stem.length; i++) {
                     if (tokens.stem[i]==data) {
@@ -419,30 +445,20 @@ $(function(){
                 break;
 
             case "bigram-freq":
-                console.log(metric);
-                console.log(data);
                 var span = [0, 0];
-                console.log(Object.prototype.toString.call(span));
-                console.log(Object.prototype.toString.call(mask));
                 var count = 0;
                 for (var i=0; i<tokens.stem.length; i++) {
                     if ((count>0) && (tokens.stem[i]==data[count])) {
                         count = count + 1;
-                        console.log(i, count);
                         if (count==2) {
                             span[1] = i;
-                            console.log(span);
-                            console.log(mask);
                             mask.push(span);
-                            console.log(mask);
                             count = 0;
                             span = [0, 0];
                         }
                     } else if (tokens.stem[i]==data[0]) {
                         count = 1;
-                        console.log(i, count);
                         span[0] = i;
-                        console.log(span);
                     } else if (tokens.stem[i]) {
                         count = 0;
                     }
