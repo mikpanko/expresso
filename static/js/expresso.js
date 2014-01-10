@@ -237,6 +237,10 @@ $(function(){
         $("#vocabulary-size").text(metrics.vocabulary_size.toString());
         $("#sentence-count").text(metrics.sentence_count.toString());
         $("#words-per-sentence").text((Math.round(metrics.words_per_sentence * 10) / 10).toString());
+        if (metrics.std_of_words_per_sentence != -1) {
+            $("#std-of-words-per-sentence").text(" \xB1 " + (Math.round(metrics.std_of_words_per_sentence * 10) / 10).toString());
+        }
+        $("#long-sentences-ratio").text((Math.round(metrics.long_sentences_ratio * 1000) / 10).toString() + "%");
         $("#declarative-ratio").text((Math.round(metrics.declarative_ratio * 1000) / 10).toString() + "%");
         $("#interrogative-ratio").text((Math.round(metrics.interrogative_ratio * 1000) / 10).toString() + "%");
         $("#exclamative-ratio").text((Math.round(metrics.exclamative_ratio * 1000) / 10).toString() + "%");
@@ -295,6 +299,31 @@ $(function(){
                     if (tokens.stopword[i]) {
                         mask.push(i);
                     }
+                }
+                break;
+
+            case "long-sents":
+                var span = [0, null];
+                var wordCount = 0;
+                if (tokens.number_of_characters[0]) {
+                    wordCount = 1;
+                }
+                for (var i=1; i<tokens.sentence_number.length; i++) {
+                    if (tokens.sentence_number[i] != tokens.sentence_number[i-1]) {
+                        span = [span[0], i - 1];
+                        if (wordCount >= 40) {
+                            mask.push(span);
+                        }
+                        span = [i, null];
+                        wordCount = 0;
+                    }
+                    if (tokens.number_of_characters[i]) {
+                            wordCount = wordCount + 1;
+                    }
+                }
+                span = [span[0], tokens.sentence_number.length - 1];
+                if (wordCount >= 40) {
+                    mask.push(span);
                 }
                 break;
 
@@ -601,7 +630,12 @@ $(function(){
 
     // clean html of formatting
     function cleanHtml(htmlStr) {
+        if (htmlStr.indexOf('<w:WordDocument>') > -1) {
+            console.log('here!');
+            htmlStr = htmlStr.replace('\n', '').replace('\r', '');
+        }
         var el = $("<div>").html(htmlStr);
+        console.log(htmlStr);
         $("div,p,br", el).after("\n");
         $("span.nlp-highlighted", el).before("HIGHLIGHT000START").after("HIGHLIGHT000END");
         return el.text().trim().replace(/\n/mgi, "<br>").replace(/HIGHLIGHT000START/mgi, "<span class=\"nlp-highlighted\">")

@@ -4,10 +4,12 @@ import nltk
 import re
 from bs4 import BeautifulSoup
 import operator
+from numpy import std
 
 # pre-load and pre-compile required variables and methods
 html_newline_re = re.compile('(<br|</div|</p)')
 quotation_re = re.compile(u'[\u00AB\u00BB\u201C\u201D\u201E\u201F\u2033\u2036\u301D\u301E]')
+punct_error_re = re.compile('^(["\]\)\}]+)[ \n]')
 ellipsis_re = re.compile('\.\.\.[" ]+[A-Z]')
 nominalization_re = re.compile('(?:ion|ions|ism|isms|ty|ties|ment|ments|ness|nesses|ance|ances|ence|ences)$')
 stopset = set(nltk.corpus.stopwords.words('english'))
@@ -28,7 +30,6 @@ def analyze_text(html, app):
     ### parse text/html string
 
     # strip html tags
-    app.logger.debug('%s', html)
     html = html_newline_re.sub(lambda m: '\n'+m.group(0), html)
     soup = BeautifulSoup(html)
     original_text = soup.get_text().rstrip('\n')
@@ -38,9 +39,13 @@ def analyze_text(html, app):
     text = quotation_re.sub('"', original_text)
 
     # tokenize text into sentences
-    tmpText = text.replace('"', '0"').replace(')', '0)').replace(']', '0]')
-    sents_draft = nltk.sent_tokenize(tmpText)
-    sents_draft = [sent.replace('0"', '"').replace('0)', ')').replace('0]', ']') for sent in sents_draft]
+    sents_draft = nltk.sent_tokenize(text)
+    for idx, sent in enumerate(sents_draft[:]):
+        if idx > 0:
+            punct_error = punct_error_re.findall(sent)
+            if punct_error:
+                sents_draft[idx-1] += punct_error[0]
+                sents_draft[idx] = sents_draft[idx][len(punct_error[0])+1:]
 
     # separate sentences at ellipsis characters correctly
     sents = []
@@ -82,9 +87,7 @@ def analyze_text(html, app):
 
     # fix symbol tags
     for idx, token in enumerate(tokens):
-        app.logger.debug('%s', token)
         if (not token[0].isalnum()) and (data['part_of_speech'][idx].isalnum()):
-            app.logger.debug('not isalnum')
             data['part_of_speech'][idx] = 'SYM'
 
     ### compute metrics on parsed data
@@ -95,12 +98,22 @@ def analyze_text(html, app):
     # count number of words
     metrics['word_count'] = len(words)
 
-    # count number of words per sentence
+    # count number of words per sentence and its standard deviation
     sents_length = [len(sent) for sent in sents_words]
     if len(sents_length):
         metrics['words_per_sentence'] = sum(sents_length) / len(sents_length)
     else:
         metrics['words_per_sentence'] = 0
+    if len(sents_length) >= 10:
+        metrics['std_of_words_per_sentence'] = std(sents_length)
+    else:
+        metrics['std_of_words_per_sentence'] = -1
+
+    # find extra long sentences
+    if len(sents_length):
+        metrics['long_sentences_ratio'] = len([1 for sent_length in sents_length if sent_length >= 40]) / len(sents_length)
+    else:
+        metrics['long_sentences_ratio'] = 0
 
     # find vocabulary size
     metrics['vocabulary_size'] = len(set(stems))
