@@ -227,7 +227,8 @@ def analyze_text(html, app):
     data['entity_substitutions'] = [None] * len(tokens)
     for idx_word, word in enumerate(words):
         idx = word2token_map[idx_word]
-        data['nominalizations'][idx] = (data['number_of_characters'][idx] > 7) and (nominalization_re.search(word) != None)
+        data['nominalizations'][idx] = (data['number_of_characters'][idx] > 7) and (data['part_of_speech'][idx] != 'NNP')\
+                                        and (nominalization_re.search(word) is not None)
         data['weak_verbs'][idx] = (data['part_of_speech'][idx][:2] == 'VB') and (data['stem'][idx] in weak_verbs)
         data['entity_substitutions'][idx] = (word in ['it', 'they', 'them', 'this', 'that', 'there', 'here'])
         if word in ['this', 'that']:
