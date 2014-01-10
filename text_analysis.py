@@ -175,7 +175,7 @@ def analyze_text(html, app):
     data['number_of_characters'] = [len(token) if token[0].isalnum() else None for token in tokens]
 
     # estimate test readability using Flesch-Kincaid Grade Level test
-    if metrics['words_per_sentence'] and metrics['syllables_per_word']:
+    if (metrics['word_count'] >= 100) and metrics['words_per_sentence'] and metrics['syllables_per_word']:
         metrics['readability'] = 0.39 * metrics['words_per_sentence'] + 11.8 * metrics['syllables_per_word'] - 15.59
     else:
         metrics['readability'] = 0
@@ -258,22 +258,28 @@ def analyze_text(html, app):
     sorted_word_freq = sorted(word_freq.iteritems(), key=operator.itemgetter(1))
     sorted_word_freq.reverse()
     sorted_word_freq = [word for word in sorted_word_freq if (word[1] > 1) and (word[0] not in stopset)]
-    #sorted_word_freq = sorted_word_freq[:min(len(sorted_word_freq), 10)]
-    metrics['word_freq'] = sorted_word_freq
+    if sorted_word_freq:
+        metrics['word_freq'] = sorted_word_freq
+    else:
+        metrics['word_freq'] = []
 
     # prepare string displaying bigram frequencies
     sorted_bigram_freq = sorted(bigram_freq.iteritems(), key=operator.itemgetter(1))
     sorted_bigram_freq.reverse()
     sorted_bigram_freq = [bigram for bigram in sorted_bigram_freq if
                           (bigram[1] > 1) and (bigram[0][0] not in stopset) and (bigram[0][1] not in stopset)]
-    #sorted_bigram_freq = sorted_bigram_freq[:min(len(sorted_bigram_freq), 10)]
-    metrics['bigram_freq'] = sorted_bigram_freq
+    if sorted_bigram_freq:
+        metrics['bigram_freq'] = sorted_bigram_freq
+    else:
+        metrics['bigram_freq'] = []
 
     # prepare string displaying trigram frequencies
     sorted_trigram_freq = sorted(trigram_freq.iteritems(), key=operator.itemgetter(1))
     sorted_trigram_freq.reverse()
     sorted_trigram_freq = [trigram for trigram in sorted_trigram_freq if trigram[1] > 1]
-    #sorted_trigram_freq = sorted_trigram_freq[:min(len(trigram_freq), 10)]
-    metrics['trigram_freq'] = sorted_trigram_freq
+    if sorted_trigram_freq:
+        metrics['trigram_freq'] = sorted_trigram_freq
+    else:
+        metrics['trigram_freq'] = []
 
     return original_text, data, metrics

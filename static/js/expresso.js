@@ -239,15 +239,25 @@ $(function(){
         $("#words-per-sentence").text((Math.round(metrics.words_per_sentence * 10) / 10).toString());
         if (metrics.std_of_words_per_sentence != -1) {
             $("#std-of-words-per-sentence").text(" \xB1 " + (Math.round(metrics.std_of_words_per_sentence * 10) / 10).toString());
+        } else {
+            $("#std-of-words-per-sentence").text("");
         }
         $("#long-sentences-ratio").text((Math.round(metrics.long_sentences_ratio * 1000) / 10).toString() + "%");
         $("#declarative-ratio").text((Math.round(metrics.declarative_ratio * 1000) / 10).toString() + "%");
         $("#interrogative-ratio").text((Math.round(metrics.interrogative_ratio * 1000) / 10).toString() + "%");
         $("#exclamative-ratio").text((Math.round(metrics.exclamative_ratio * 1000) / 10).toString() + "%");
         $("#stopword-ratio").text((Math.round(metrics.stopword_ratio * 1000) / 10).toString() + "%");
-        $("#syllables-per-word").text((Math.round(metrics.syllables_per_word * 10) / 10).toString());
+        if (metrics.syllables_per_word > 0) {
+            $("#syllables-per-word").text((Math.round(metrics.syllables_per_word * 10) / 10).toString());
+        } else {
+            $("#syllables-per-word").text("-");
+        }
         $("#characters-per-word").text((Math.round(metrics.characters_per_word * 10) / 10).toString());
-        $("#readability").text((Math.round(metrics.readability * 10) / 10).toString());
+        if (metrics.readability > 0) {
+            $("#readability").text((Math.round(metrics.readability * 10) / 10).toString());
+        } else {
+            $("#readability").text("-");
+        }
         $("#noun-ratio").text((Math.round(metrics.noun_ratio * 1000) / 10).toString() + "%");
         $("#pronoun-ratio").text((Math.round(metrics.pronoun_ratio * 1000) / 10).toString() + "%");
         $("#verb-ratio").text((Math.round(metrics.verb_ratio * 1000) / 10).toString() + "%");
@@ -258,34 +268,48 @@ $(function(){
         $("#nominalization-ratio").text((Math.round(metrics.nominalization_ratio * 1000) / 10).toString() + "%");
         $("#weak-verb-ratio").text((Math.round(metrics.weak_verb_ratio * 1000) / 10).toString() + "%");
         $("#entity-substitution-ratio").text((Math.round(metrics.entity_substitution_ratio * 1000) / 10).toString() + "%");
-        var freqWordHtml = "";
-        for (var i=0; i<Math.min(metrics.word_freq.length, 10); i++) {
-            freqWordHtml = freqWordHtml + '<span class="metric" data-metric="word-freq" data-metric-data="' +
-                           metrics.word_freq[i][0] + '">' + metrics.word_freq[i][0] + '</span> (' +
-                           metrics.word_freq[i][1].toString() + ')<br>';
-        }
-        $("#word-freq").html(freqWordHtml.slice(0, freqWordHtml.length-4));
-        for (var i=0; i<Math.min(metrics.bigram_freq.length, 10); i++) {
-            $("#bigram-freq").append('<span class="metric" id="tmp-metric">' + metrics.bigram_freq[i][0][0] + ' ' +
-                                     metrics.bigram_freq[i][0][1] + '</span> (' + metrics.bigram_freq[i][1].toString() +
-                                     ')');
-            $("#tmp-metric").data('metric', 'bigram-freq');
-            $("#tmp-metric").data('metric-data', metrics.bigram_freq[i][0]);
-            $("#tmp-metric").removeAttr('id');
-            if (i < metrics.bigram_freq.length-1) {
-                $("#bigram-freq").append('<br>');
+        if (metrics.word_freq.length > 0) {
+            var freqWordHtml = "";
+            for (var i=0; i<Math.min(metrics.word_freq.length, 10); i++) {
+                freqWordHtml = freqWordHtml + '<span class="metric" data-metric="word-freq" data-metric-data="' +
+                    metrics.word_freq[i][0] + '">' + metrics.word_freq[i][0] + '</span> (' +
+                    metrics.word_freq[i][1].toString() + ')<br>';
             }
+            $("#word-freq").html(freqWordHtml.slice(0, freqWordHtml.length-4));
+        } else {
+            $("#word-freq").text("-");
         }
-        for (var i=0; i<Math.min(metrics.trigram_freq.length, 10); i++) {
-            $("#trigram-freq").append('<span class="metric" id="tmp-metric">' + metrics.trigram_freq[i][0][0] + ' ' +
-                                     metrics.trigram_freq[i][0][1] + ' ' + metrics.trigram_freq[i][0][2] + '</span> (' +
-                                     metrics.trigram_freq[i][1].toString() + ')');
-            $("#tmp-metric").data('metric', 'trigram-freq');
-            $("#tmp-metric").data('metric-data', metrics.trigram_freq[i][0]);
-            $("#tmp-metric").removeAttr('id');
-            if (i < metrics.trigram_freq.length-1) {
-                $("#trigram-freq").append('<br>');
+        if (metrics.bigram_freq.length > 0) {
+            $("#bigram-freq").html("");
+            for (var i=0; i<Math.min(metrics.bigram_freq.length, 10); i++) {
+                $("#bigram-freq").append('<span class="metric" id="tmp-metric">' + metrics.bigram_freq[i][0][0] + ' ' +
+                    metrics.bigram_freq[i][0][1] + '</span> (' + metrics.bigram_freq[i][1].toString() +
+                    ')');
+                $("#tmp-metric").data('metric', 'bigram-freq');
+                $("#tmp-metric").data('metric-data', metrics.bigram_freq[i][0]);
+                $("#tmp-metric").removeAttr('id');
+                if (i < metrics.bigram_freq.length-1) {
+                    $("#bigram-freq").append('<br>');
+                }
             }
+        } else {
+            $("#bigram-freq").text("-");
+        }
+        if (metrics.trigram_freq.length > 0) {
+            $("#trigram-freq").html("");
+            for (var i=0; i<Math.min(metrics.trigram_freq.length, 10); i++) {
+                $("#trigram-freq").append('<span class="metric" id="tmp-metric">' + metrics.trigram_freq[i][0][0] +
+                    ' ' + metrics.trigram_freq[i][0][1] + ' ' + metrics.trigram_freq[i][0][2] + '</span> (' +
+                    metrics.trigram_freq[i][1].toString() + ')');
+                $("#tmp-metric").data('metric', 'trigram-freq');
+                $("#tmp-metric").data('metric-data', metrics.trigram_freq[i][0]);
+                $("#tmp-metric").removeAttr('id');
+                if (i < metrics.trigram_freq.length-1) {
+                    $("#trigram-freq").append('<br>');
+                }
+            }
+        } else {
+            $("#trigram-freq").text("-");
         }
     }
 
