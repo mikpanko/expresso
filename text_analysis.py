@@ -257,7 +257,7 @@ def analyze_text(html, app):
     sorted_word_freq = sorted(word_freq.iteritems(), key=operator.itemgetter(1))
     sorted_word_freq.reverse()
     sorted_word_freq = [word for word in sorted_word_freq if (word[1] > 1) and (word[0] not in stopset)]
-    sorted_word_freq = sorted_word_freq[:min(len(sorted_word_freq), 10)]
+    #sorted_word_freq = sorted_word_freq[:min(len(sorted_word_freq), 10)]
     metrics['word_freq'] = sorted_word_freq
 
     # prepare string displaying bigram frequencies
@@ -265,14 +265,14 @@ def analyze_text(html, app):
     sorted_bigram_freq.reverse()
     sorted_bigram_freq = [bigram for bigram in sorted_bigram_freq if
                           (bigram[1] > 1) and (bigram[0][0] not in stopset) and (bigram[0][1] not in stopset)]
-    sorted_bigram_freq = sorted_bigram_freq[:min(len(sorted_bigram_freq), 10)]
+    #sorted_bigram_freq = sorted_bigram_freq[:min(len(sorted_bigram_freq), 10)]
     metrics['bigram_freq'] = sorted_bigram_freq
 
     # prepare string displaying trigram frequencies
     sorted_trigram_freq = sorted(trigram_freq.iteritems(), key=operator.itemgetter(1))
     sorted_trigram_freq.reverse()
     sorted_trigram_freq = [trigram for trigram in sorted_trigram_freq if trigram[1] > 1]
-    sorted_trigram_freq = sorted_trigram_freq[:min(len(trigram_freq), 10)]
+    #sorted_trigram_freq = sorted_trigram_freq[:min(len(trigram_freq), 10)]
     metrics['trigram_freq'] = sorted_trigram_freq
 
     return original_text, data, metrics

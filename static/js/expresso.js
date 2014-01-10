@@ -259,13 +259,13 @@ $(function(){
         $("#weak-verb-ratio").text((Math.round(metrics.weak_verb_ratio * 1000) / 10).toString() + "%");
         $("#entity-substitution-ratio").text((Math.round(metrics.entity_substitution_ratio * 1000) / 10).toString() + "%");
         var freqWordHtml = "";
-        for (var i=0; i<metrics.word_freq.length; i++) {
+        for (var i=0; i<Math.min(metrics.word_freq.length, 10); i++) {
             freqWordHtml = freqWordHtml + '<span class="metric" data-metric="word-freq" data-metric-data="' +
                            metrics.word_freq[i][0] + '">' + metrics.word_freq[i][0] + '</span> (' +
                            metrics.word_freq[i][1].toString() + ')<br>';
         }
         $("#word-freq").html(freqWordHtml.slice(0, freqWordHtml.length-4));
-        for (var i=0; i<metrics.bigram_freq.length; i++) {
+        for (var i=0; i<Math.min(metrics.bigram_freq.length, 10); i++) {
             $("#bigram-freq").append('<span class="metric" id="tmp-metric">' + metrics.bigram_freq[i][0][0] + ' ' +
                                      metrics.bigram_freq[i][0][1] + '</span> (' + metrics.bigram_freq[i][1].toString() +
                                      ')');
@@ -276,7 +276,7 @@ $(function(){
                 $("#bigram-freq").append('<br>');
             }
         }
-        for (var i=0; i<metrics.trigram_freq.length; i++) {
+        for (var i=0; i<Math.min(metrics.trigram_freq.length, 10); i++) {
             $("#trigram-freq").append('<span class="metric" id="tmp-metric">' + metrics.trigram_freq[i][0][0] + ' ' +
                                      metrics.trigram_freq[i][0][1] + ' ' + metrics.trigram_freq[i][0][2] + '</span> (' +
                                      metrics.trigram_freq[i][1].toString() + ')');
