@@ -115,6 +115,7 @@ $(function(){
             // get text
             //text = html2text(textField.html());
             text = textField.html();
+            console.log(text);
             var hasValidCharacters = false;
             var inputCharacters = textField.text();
             for (var i=0; i<inputCharacters.length; i++) {
@@ -154,6 +155,7 @@ $(function(){
                         spinner.stop();
                         $("#spinner-container").hide();
                         addMetricsToResultsTable();
+                        console.log(text);
                         textField.html(renderTokensToHtml());
                         resultsTable.show();
                         analyzeTextButton.button('reset');
@@ -654,12 +656,22 @@ $(function(){
 
     // clean html of formatting
     function cleanHtml(htmlStr) {
-        if (htmlStr.indexOf('<w:WordDocument>') > -1) {
-            console.log('here!');
-            htmlStr = htmlStr.replace('\n', '').replace('\r', '');
+
+        // clean text pasted from MS Word or PDF
+        if ((htmlStr.indexOf('<w:WordDocument>') > -1) || ($("p.p1").length > 0)) {
+            htmlStr = htmlStr.replace(/\u000A/mgi, " ");
         }
+
+        htmlStr = htmlStr.replace(/<\/div><div><br><\/div>/mgi, "</div>" + "\n");
         var el = $("<div>").html(htmlStr);
-        console.log(htmlStr);
+
+        // clean text pasted from PDF further
+        $("p.p1", el).each(function() {
+            var el1 = $(this);
+            el1.after(el1.html());
+        });
+        $("p.p1", el).remove();
+
         $("div,p,br", el).after("\n");
         $("span.nlp-highlighted", el).before("HIGHLIGHT000START").after("HIGHLIGHT000END");
         return el.text().trim().replace(/\n/mgi, "<br>").replace(/HIGHLIGHT000START/mgi, "<span class=\"nlp-highlighted\">")

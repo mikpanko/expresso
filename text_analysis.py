@@ -7,10 +7,12 @@ import operator
 from numpy import std
 
 # pre-load and pre-compile required variables and methods
+html_div_br_div_re = re.compile('</div><div><br></div>')
 html_newline_re = re.compile('(<br|</div|</p)')
 quotation_re = re.compile(u'[\u00AB\u00BB\u201C\u201D\u201E\u201F\u2033\u2036\u301D\u301E]')
 punct_error_re = re.compile('^(["\]\)\}]+)[ \n]')
-ellipsis_re = re.compile('\.\.\.[" ]+[A-Z]')
+ellipsis_re = re.compile('\.\.\.["\(\)\[\]\{\} ] [A-Z]')
+newline_re = re.compile('\n["\(\[\{ ]*[A-Z]')
 nominalization_re = re.compile('(?:ion|ions|ism|isms|ty|ties|ment|ments|ness|nesses|ance|ances|ence|ences)$')
 stopset = set(nltk.corpus.stopwords.words('english'))
 stemmer = nltk.PorterStemmer()
@@ -30,6 +32,7 @@ def analyze_text(html, app):
     ### parse text/html string
 
     # strip html tags
+    html = html_div_br_div_re.sub(r'</div>\n', html)
     html = html_newline_re.sub(lambda m: '\n'+m.group(0), html)
     soup = BeautifulSoup(html)
     original_text = soup.get_text().rstrip('\n')
@@ -48,12 +51,22 @@ def analyze_text(html, app):
                 sents_draft[idx] = sents_draft[idx][len(punct_error[0])+1:]
 
     # separate sentences at ellipsis characters correctly
-    sents = []
+    sents_draft_2 = []
     for sent in sents_draft:
         idx = 0
         for ellipsis_case in ellipsis_re.finditer(sent):
-            sents.append(sent[idx:(ellipsis_case.start() + 3)])
+            sents_draft_2.append(sent[idx:(ellipsis_case.start() + 3)])
             idx = ellipsis_case.start() + 3
+        sents_draft_2.append(sent[idx:])
+    app.logger.debug('%s', sents_draft_2)
+
+    # separate sentences at newline characters correctly
+    sents = []
+    for sent in sents_draft_2:
+        idx = 0
+        for newline_case in newline_re.finditer(sent):
+            sents.append(sent[idx:(newline_case.start() + 1)])
+            idx = newline_case.start() + 1
         sents.append(sent[idx:])
     app.logger.debug('%s', sents)
 
