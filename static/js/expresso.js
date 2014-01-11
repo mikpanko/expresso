@@ -659,7 +659,7 @@ $(function(){
 
         // clean text pasted from MS Word or PDF
         if ((htmlStr.indexOf('<w:WordDocument>') > -1) || ($("p.p1").length > 0)) {
-            htmlStr = htmlStr.replace(/\u000A/mgi, " ");
+            htmlStr = htmlStr.replace(/\n/mgi, " ");
         }
 
         htmlStr = htmlStr.replace(/<\/div><div><br><\/div>/mgi, "</div>" + "\n");
