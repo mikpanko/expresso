@@ -19,6 +19,8 @@ stemmer = nltk.PorterStemmer()
 cmudict = nltk.corpus.cmudict.dict()
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/weak-verbs')) as f:
     dict_weak_verbs = f.read().splitlines()
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/entity-substitutions')) as f:
+    dict_entity_substitutions = f.read().splitlines()
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/fillers')) as f:
     dict_fillers = f.read().splitlines()
 
@@ -236,22 +238,24 @@ def analyze_text(html, app):
         metrics['modal_ratio'] = 0
         metrics['other_pos_ratio'] = 0
 
-    # find nominalizations, weak verbs, and entity substitutes
+    # find nominalizations, weak verbs, entity substitutes, and filler words
     data['nominalizations'] = [None] * len(tokens)
     data['weak_verbs'] = [None] * len(tokens)
     data['entity_substitutions'] = [None] * len(tokens)
+    data['filler_words'] = [None] * len(tokens)
     for idx_word, word in enumerate(words):
         idx = word2token_map[idx_word]
         data['nominalizations'][idx] = (data['number_of_characters'][idx] > 7) and (data['part_of_speech'][idx] != 'NNP')\
                                         and (nominalization_re.search(word) is not None)
         data['weak_verbs'][idx] = (data['part_of_speech'][idx][:2] == 'VB') and (data['stem'][idx] in dict_weak_verbs)
-        data['entity_substitutions'][idx] = (word in ['it', 'they', 'them', 'this', 'that', 'there', 'here'])
+        data['entity_substitutions'][idx] = (word in dict_entity_substitutions)
         if word in ['this', 'that']:
             if (idx > 0) and (data['part_of_speech'][idx-1][:2] in ['NN', 'PR']):
                 data['entity_substitutions'][idx] = False
             if (idx < len(tokens)) and ((data['part_of_speech'][idx+1][:2] in ['NN', 'PR', 'WP', 'JJ', 'DT', 'WD', 'WP'])
                                         or (tokens[idx+1] in ['there', 'that', 'this', 'here'])):
                 data['entity_substitutions'][idx] = False
+        data['filler_words'][idx] = (word in dict_fillers)
     if (noun_count + pronoun_nonpossesive_count) > 0:
         metrics['nominalization_ratio'] = data['nominalizations'].count(True) / (noun_count + pronoun_nonpossesive_count)
         metrics['entity_substitution_ratio'] = data['entity_substitutions'].count(True) / (noun_count +
@@ -263,18 +267,8 @@ def analyze_text(html, app):
         metrics['weak_verb_ratio'] = data['weak_verbs'].count(True) / verb_count
     else:
         metrics['weak_verb_ratio'] = 0
-
-    # find and count filler words
-    data['filler_word'] = [None] * len(tokens)
-    fillers_count = 0
-    for idx, word in enumerate(words):
-        if word in dict_fillers:
-            data['filler_word'][word2token_map[idx]] = True
-            fillers_count += 1
-        else:
-            data['filler_word'][word2token_map[idx]] = False
     if len(words) > 0:
-        metrics['filler_ratio'] = fillers_count / len(words)
+        metrics['filler_ratio'] = data['filler_words'].count(True) / len(words)
     else:
         metrics['filler_ratio'] = 0
 

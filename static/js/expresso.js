@@ -494,7 +494,7 @@ $(function(){
 
             case "filler-words":
                 for (var i=0; i<tokens.value.length; i++) {
-                    if (tokens.filler_word[i]) {
+                    if (tokens.filler_words[i]) {
                         mask.push(i);
                     }
                 }
