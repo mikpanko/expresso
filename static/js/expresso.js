@@ -272,6 +272,7 @@ $(function(){
         $("#weak-verb-ratio").text((Math.round(metrics.weak_verb_ratio * 1000) / 10).toString() + "%");
         $("#entity-substitution-ratio").text((Math.round(metrics.entity_substitution_ratio * 1000) / 10).toString() + "%");
         $("#filler-ratio").text((Math.round(metrics.filler_ratio * 1000) / 10).toString() + "%");
+        $("#negation-ratio").text((Math.round(metrics.negation_ratio * 1000) / 10).toString() + "%");
         if (metrics.word_freq.length > 0) {
             var freqWordHtml = "";
             for (var i=0; i<Math.min(metrics.word_freq.length, 10); i++) {
@@ -531,6 +532,14 @@ $(function(){
             case "filler-words":
                 for (var i=0; i<tokens.value.length; i++) {
                     if (tokens.filler_words[i]) {
+                        mask.push(i);
+                    }
+                }
+                break;
+
+            case "negations":
+                for (var i=0; i<tokens.value.length; i++) {
+                    if (tokens.negations[i]) {
                         mask.push(i);
                     }
                 }

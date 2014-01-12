@@ -282,6 +282,21 @@ def analyze_text(html, app):
     else:
         metrics['filler_ratio'] = 0
 
+    # find and count negations
+    data['negations'] = [None] * len(tokens)
+    for idx_word, word in enumerate(words):
+        idx = word2token_map[idx_word]
+        if word in ["not", "n't", "no", "neither", "nor", "nothing", "nobody", "nowhere", "never"]:
+            data['negations'][idx] = True
+        elif (word[:2] == 'un') and (word[2:] in cmudict):
+            data['negations'][idx] = True
+        else:
+            data['negations'][idx] = False
+    if metrics['sentence_count']:
+        metrics['negation_ratio'] = data['negations'].count(True) / metrics['sentence_count']
+    else:
+        metrics['negation_ratio'] = 0
+
     # count word, bigram, and trigram frequencies
     bcf = nltk.TrigramCollocationFinder.from_words(stems)
     word_freq = bcf.word_fd

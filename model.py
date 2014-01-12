@@ -32,6 +32,7 @@ class Text(Model):
     weak_verb_ratio = FloatField()
     entity_substitution_ratio = FloatField()
     filler_ratio = FloatField()
+    negation_ratio = FloatField()
     word_freq = TextField()
     bigram_freq = TextField()
     trigram_freq = TextField()
