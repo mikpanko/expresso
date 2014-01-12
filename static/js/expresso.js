@@ -245,6 +245,7 @@ $(function(){
             $("#std-of-words-per-sentence").text("");
         }
         $("#long-sentences-ratio").text((Math.round(metrics.long_sentences_ratio * 1000) / 10).toString() + "%");
+        $("#short-sentences-ratio").text((Math.round(metrics.short_sentences_ratio * 1000) / 10).toString() + "%");
         $("#declarative-ratio").text((Math.round(metrics.declarative_ratio * 1000) / 10).toString() + "%");
         $("#interrogative-ratio").text((Math.round(metrics.interrogative_ratio * 1000) / 10).toString() + "%");
         $("#exclamative-ratio").text((Math.round(metrics.exclamative_ratio * 1000) / 10).toString() + "%");
@@ -321,10 +322,12 @@ $(function(){
         var mask = [];
         switch (metric) {
 
-            case "stopwords":
+            case "sents":
+                var currSent = 0;
                 for (var i=0; i<tokens.value.length; i++) {
-                    if (tokens.stopword[i]) {
+                    if ((tokens.sentence_number[i] > currSent) && (tokens.number_of_characters[i])) {
                         mask.push(i);
+                        currSent = tokens.sentence_number[i];
                     }
                 }
                 break;
@@ -351,6 +354,39 @@ $(function(){
                 span = [span[0], tokens.sentence_number.length - 1];
                 if (wordCount >= 40) {
                     mask.push(span);
+                }
+                break;
+
+            case "short-sents":
+                var span = [0, null];
+                var wordCount = 0;
+                if (tokens.number_of_characters[0]) {
+                    wordCount = 1;
+                }
+                for (var i=1; i<tokens.sentence_number.length; i++) {
+                    if (tokens.sentence_number[i] != tokens.sentence_number[i-1]) {
+                        span = [span[0], i - 1];
+                        if (wordCount <= 6) {
+                            mask.push(span);
+                        }
+                        span = [i, null];
+                        wordCount = 0;
+                    }
+                    if (tokens.number_of_characters[i]) {
+                            wordCount = wordCount + 1;
+                    }
+                }
+                span = [span[0], tokens.sentence_number.length - 1];
+                if (wordCount <= 6) {
+                    mask.push(span);
+                }
+                break;
+
+            case "stopwords":
+                for (var i=0; i<tokens.value.length; i++) {
+                    if (tokens.stopword[i]) {
+                        mask.push(i);
+                    }
                 }
                 break;
 

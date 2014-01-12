@@ -12,6 +12,7 @@ class Text(Model):
     words_per_sentence = FloatField()
     std_of_words_per_sentence = FloatField()
     long_sentences_ratio = FloatField()
+    short_sentences_ratio = FloatField()
     vocabulary_size = IntegerField()
     declarative_ratio = FloatField()
     interrogative_ratio = FloatField()

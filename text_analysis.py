@@ -82,12 +82,13 @@ def analyze_text(html, app):
     data['sentence_number'] = [(idx+1) for idx, sent in enumerate(sents_tokens) for token in sent]
 
     # find words
-    sents_words = [[token.lower() for token in sent if token[0].isalnum()] for sent in sents_tokens]
+    sents_words = [[token.lower() for token in sent if (token[0].isalnum() or (token in
+                    ["'m", "'re", "'ve", "'d", "'ll"]))] for sent in sents_tokens]
     app.logger.debug('%s', sents_words)
     words = []
     word2token_map = []
     for idx, token in enumerate(tokens):
-        if token[0].isalnum():
+        if token[0].isalnum() or (token in ["'m", "'re", "'ve", "'d", "'ll"]):
             words.append(token.lower())
             word2token_map.append(idx)
 
@@ -102,10 +103,17 @@ def analyze_text(html, app):
     sents_tokens_tags = nltk.batch_pos_tag(sents_tokens)
     data['part_of_speech'] = [pos for sent in sents_tokens_tags for (token, pos) in sent]
 
-    # fix symbol tags
+    # fix symbol and apostrophed verb tags
     for idx, token in enumerate(tokens):
         if (not token[0].isalnum()) and (data['part_of_speech'][idx].isalnum()):
             data['part_of_speech'][idx] = 'SYM'
+        if token in ["'m", "'re", "'ve"]:
+            data['part_of_speech'][idx] = 'VBP'
+        elif token == "'d":
+            data['part_of_speech'][idx] = 'VBD'
+        elif token == "'ll":
+            data['part_of_speech'][idx] = 'MD'
+    app.logger.debug('%s', data['part_of_speech'])
 
     ### compute metrics on parsed data
 
@@ -126,11 +134,13 @@ def analyze_text(html, app):
     else:
         metrics['std_of_words_per_sentence'] = -1
 
-    # find extra long sentences
+    # find extra long and short sentences
     if len(sents_length):
         metrics['long_sentences_ratio'] = len([1 for sent_length in sents_length if sent_length >= 40]) / len(sents_length)
+        metrics['short_sentences_ratio'] = len([1 for sent_length in sents_length if sent_length <= 6]) / len(sents_length)
     else:
         metrics['long_sentences_ratio'] = 0
+        metrics['short_sentences_ratio'] = 0
 
     # find vocabulary size
     metrics['vocabulary_size'] = len(set(stems))
