@@ -18,7 +18,9 @@ stopset = set(nltk.corpus.stopwords.words('english'))
 stemmer = nltk.PorterStemmer()
 cmudict = nltk.corpus.cmudict.dict()
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/weak-verbs')) as f:
-    weak_verbs = f.read().splitlines()
+    dict_weak_verbs = f.read().splitlines()
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/fillers')) as f:
+    dict_fillers = f.read().splitlines()
 
 
 def analyze_text(html, app):
@@ -242,7 +244,7 @@ def analyze_text(html, app):
         idx = word2token_map[idx_word]
         data['nominalizations'][idx] = (data['number_of_characters'][idx] > 7) and (data['part_of_speech'][idx] != 'NNP')\
                                         and (nominalization_re.search(word) is not None)
-        data['weak_verbs'][idx] = (data['part_of_speech'][idx][:2] == 'VB') and (data['stem'][idx] in weak_verbs)
+        data['weak_verbs'][idx] = (data['part_of_speech'][idx][:2] == 'VB') and (data['stem'][idx] in dict_weak_verbs)
         data['entity_substitutions'][idx] = (word in ['it', 'they', 'them', 'this', 'that', 'there', 'here'])
         if word in ['this', 'that']:
             if (idx > 0) and (data['part_of_speech'][idx-1][:2] in ['NN', 'PR']):
@@ -261,13 +263,28 @@ def analyze_text(html, app):
         metrics['weak_verb_ratio'] = data['weak_verbs'].count(True) / verb_count
     else:
         metrics['weak_verb_ratio'] = 0
+
+    # find and count filler words
+    data['filler_word'] = [None] * len(tokens)
+    fillers_count = 0
+    for idx, word in enumerate(words):
+        if word in dict_fillers:
+            data['filler_word'][word2token_map[idx]] = True
+            fillers_count += 1
+        else:
+            data['filler_word'][word2token_map[idx]] = False
+    if len(words) > 0:
+        metrics['filler_ratio'] = fillers_count / len(words)
+    else:
+        metrics['filler_ratio'] = 0
+
     # count word, bigram, and trigram frequencies
     bcf = nltk.TrigramCollocationFinder.from_words(stems)
     word_freq = bcf.word_fd
     bigram_freq = bcf.bigram_fd
     trigram_freq = bcf.ngram_fd
 
-    # prepare string displaying word frequencies
+    # sort and filter word frequencies
     sorted_word_freq = sorted(word_freq.iteritems(), key=operator.itemgetter(1))
     sorted_word_freq.reverse()
     sorted_word_freq = [word for word in sorted_word_freq if (word[1] > 1) and (word[0] not in stopset)]
@@ -276,7 +293,7 @@ def analyze_text(html, app):
     else:
         metrics['word_freq'] = []
 
-    # prepare string displaying bigram frequencies
+    # sort and filter bigram frequencies
     sorted_bigram_freq = sorted(bigram_freq.iteritems(), key=operator.itemgetter(1))
     sorted_bigram_freq.reverse()
     sorted_bigram_freq = [bigram for bigram in sorted_bigram_freq if
@@ -286,7 +303,7 @@ def analyze_text(html, app):
     else:
         metrics['bigram_freq'] = []
 
-    # prepare string displaying trigram frequencies
+    # sort and filter trigram frequencies
     sorted_trigram_freq = sorted(trigram_freq.iteritems(), key=operator.itemgetter(1))
     sorted_trigram_freq.reverse()
     sorted_trigram_freq = [trigram for trigram in sorted_trigram_freq if trigram[1] > 1]
