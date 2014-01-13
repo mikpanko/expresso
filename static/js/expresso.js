@@ -327,10 +327,10 @@ $(function(){
 
             case "sents":
                 var currSent = 0;
-                for (var i=0; i<tokens.value.length; i++) {
-                    if ((tokens.sentence_number[i] > currSent) && (tokens.number_of_characters[i])) {
+                for (var i=0; i<tokens.values.length; i++) {
+                    if ((tokens.sentence_numbers[i] > currSent) && (tokens.number_of_characters[i])) {
                         mask.push(i);
-                        currSent = tokens.sentence_number[i];
+                        currSent = tokens.sentence_numbers[i];
                     }
                 }
                 break;
@@ -341,8 +341,8 @@ $(function(){
                 if (tokens.number_of_characters[0]) {
                     wordCount = 1;
                 }
-                for (var i=1; i<tokens.sentence_number.length; i++) {
-                    if (tokens.sentence_number[i] != tokens.sentence_number[i-1]) {
+                for (var i=1; i<tokens.sentence_numbers.length; i++) {
+                    if (tokens.sentence_numbers[i] != tokens.sentence_numbers[i-1]) {
                         span = [span[0], i - 1];
                         if (wordCount >= 40) {
                             mask.push(span);
@@ -354,7 +354,7 @@ $(function(){
                             wordCount = wordCount + 1;
                     }
                 }
-                span = [span[0], tokens.sentence_number.length - 1];
+                span = [span[0], tokens.sentence_numbers.length - 1];
                 if (wordCount >= 40) {
                     mask.push(span);
                 }
@@ -366,8 +366,8 @@ $(function(){
                 if (tokens.number_of_characters[0]) {
                     wordCount = 1;
                 }
-                for (var i=1; i<tokens.sentence_number.length; i++) {
-                    if (tokens.sentence_number[i] != tokens.sentence_number[i-1]) {
+                for (var i=1; i<tokens.sentence_numbers.length; i++) {
+                    if (tokens.sentence_numbers[i] != tokens.sentence_numbers[i-1]) {
                         span = [span[0], i - 1];
                         if (wordCount <= 6) {
                             mask.push(span);
@@ -379,72 +379,72 @@ $(function(){
                             wordCount = wordCount + 1;
                     }
                 }
-                span = [span[0], tokens.sentence_number.length - 1];
+                span = [span[0], tokens.sentence_numbers.length - 1];
                 if (wordCount <= 6) {
                     mask.push(span);
                 }
                 break;
 
             case "stopwords":
-                for (var i=0; i<tokens.value.length; i++) {
-                    if (tokens.stopword[i]) {
+                for (var i=0; i<tokens.values.length; i++) {
+                    if (tokens.stopwords[i]) {
                         mask.push(i);
                     }
                 }
                 break;
 
             case "nouns":
-                for (var i=0; i<tokens.part_of_speech.length; i++) {
-                    if (tokens.part_of_speech[i].slice(0, 2)=="NN") {
+                for (var i=0; i<tokens.parts_of_speech.length; i++) {
+                    if (tokens.parts_of_speech[i].slice(0, 2)=="NN") {
                         mask.push(i);
                     }
                 }
                 break;
 
             case "pronouns":
-                for (var i=0; i<tokens.part_of_speech.length; i++) {
-                    if (["PR", "WP", "EX"].indexOf(tokens.part_of_speech[i].slice(0, 2))>=0) {
+                for (var i=0; i<tokens.parts_of_speech.length; i++) {
+                    if (["PR", "WP", "EX"].indexOf(tokens.parts_of_speech[i].slice(0, 2))>=0) {
                         mask.push(i);
                     }
                 }
                 break;
 
             case "verbs":
-                for (var i=0; i<tokens.part_of_speech.length; i++) {
-                    if (tokens.part_of_speech[i].slice(0, 2)=="VB") {
+                for (var i=0; i<tokens.parts_of_speech.length; i++) {
+                    if (tokens.parts_of_speech[i].slice(0, 2)=="VB") {
                         mask.push(i);
                     }
                 }
                 break;
 
             case "adjectives":
-                for (var i=0; i<tokens.part_of_speech.length; i++) {
-                    if (tokens.part_of_speech[i].slice(0, 2)=="JJ") {
+                for (var i=0; i<tokens.parts_of_speech.length; i++) {
+                    if (tokens.parts_of_speech[i].slice(0, 2)=="JJ") {
                         mask.push(i);
                     }
                 }
                 break;
 
             case "adverbs":
-                for (var i=0; i<tokens.part_of_speech.length; i++) {
-                    if (tokens.part_of_speech[i].slice(0, 2)=="RB") {
+                for (var i=0; i<tokens.parts_of_speech.length; i++) {
+                    if (tokens.parts_of_speech[i].slice(0, 2)=="RB") {
                         mask.push(i);
                     }
                 }
                 break;
 
             case "modals":
-                for (var i=0; i<tokens.part_of_speech.length; i++) {
-                    if (tokens.part_of_speech[i].slice(0, 2)=="MD") {
+                for (var i=0; i<tokens.parts_of_speech.length; i++) {
+                    if (tokens.parts_of_speech[i].slice(0, 2)=="MD") {
                         mask.push(i);
                     }
                 }
                 break;
 
             case "other-pos":
-                for (var i=0; i<tokens.part_of_speech.length; i++) {
+                for (var i=0; i<tokens.parts_of_speech.length; i++) {
                     if ((tokens.number_of_characters[i]) &&
-                        (["NN", "PR", "WP", "VB", "JJ", "RB", "MD"].indexOf(tokens.part_of_speech[i].slice(0, 2))==-1)) {
+                        (["NN", "PR", "WP", "VB", "JJ", "RB", "MD"].indexOf(tokens.parts_of_speech[i].slice(0, 2))==-1)) {
                         mask.push(i);
                     }
                 }
@@ -452,18 +452,18 @@ $(function(){
 
             case "declar-sents":
                 var span = [0, null];
-                var validSent = ([".", "..."].indexOf(tokens.sentence_end_punctuation[0])>=0);
-                for (var i=1; i<tokens.sentence_number.length; i++) {
-                    if (tokens.sentence_number[i] != tokens.sentence_number[i-1]) {
+                var validSent = ([".", "..."].indexOf(tokens.sentence_end_punctuations[0])>=0);
+                for (var i=1; i<tokens.sentence_numbers.length; i++) {
+                    if (tokens.sentence_numbers[i] != tokens.sentence_numbers[i-1]) {
                         span[1] = i - 1;
                         if (validSent) {
                             mask.push(span);
                         }
                         span = [i, null];
-                        validSent = ([".", "..."].indexOf(tokens.sentence_end_punctuation[i])>=0);
+                        validSent = ([".", "..."].indexOf(tokens.sentence_end_punctuations[i])>=0);
                     }
                 }
-                span[1] = tokens.sentence_number.length - 1;
+                span[1] = tokens.sentence_numbers.length - 1;
                 if (validSent) {
                     mask.push(span);
                 }
@@ -471,18 +471,18 @@ $(function(){
 
             case "inter-sents":
                 var span = [0, null];
-                var validSent = (tokens.sentence_end_punctuation[0]=="?");
-                for (var i=1; i<tokens.sentence_number.length; i++) {
-                    if (tokens.sentence_number[i] != tokens.sentence_number[i-1]) {
+                var validSent = (tokens.sentence_end_punctuations[0]=="?");
+                for (var i=1; i<tokens.sentence_numbers.length; i++) {
+                    if (tokens.sentence_numbers[i] != tokens.sentence_numbers[i-1]) {
                         span[1] = i - 1;
                         if (validSent) {
                             mask.push(span);
                         }
                         span = [i, null];
-                        validSent = (tokens.sentence_end_punctuation[i]=="?");
+                        validSent = (tokens.sentence_end_punctuations[i]=="?");
                     }
                 }
-                span[1] = tokens.sentence_number.length - 1;
+                span[1] = tokens.sentence_numbers.length - 1;
                 if (validSent) {
                     mask.push(span);
                 }
@@ -490,25 +490,25 @@ $(function(){
 
             case "exclam-sents":
                 var span = [0, null];
-                var validSent = (tokens.sentence_end_punctuation[0]=="!");
-                for (var i=1; i<tokens.sentence_number.length; i++) {
-                    if (tokens.sentence_number[i] != tokens.sentence_number[i-1]) {
+                var validSent = (tokens.sentence_end_punctuations[0]=="!");
+                for (var i=1; i<tokens.sentence_numbers.length; i++) {
+                    if (tokens.sentence_numbers[i] != tokens.sentence_numbers[i-1]) {
                         span[1] = i - 1;
                         if (validSent) {
                             mask.push(span);
                         }
                         span = [i, null];
-                        validSent = (tokens.sentence_end_punctuation[i]=="!");
+                        validSent = (tokens.sentence_end_punctuations[i]=="!");
                     }
                 }
-                span[1] = tokens.sentence_number.length - 1;
+                span[1] = tokens.sentence_numbers.length - 1;
                 if (validSent) {
                     mask.push(span);
                 }
                 break;
 
             case "nominalizations":
-                for (var i=0; i<tokens.value.length; i++) {
+                for (var i=0; i<tokens.values.length; i++) {
                     if (tokens.nominalizations[i]) {
                         mask.push(i);
                     }
@@ -516,7 +516,7 @@ $(function(){
                 break;
 
             case "weak-verbs":
-                for (var i=0; i<tokens.value.length; i++) {
+                for (var i=0; i<tokens.values.length; i++) {
                     if (tokens.weak_verbs[i]) {
                         mask.push(i);
                     }
@@ -524,7 +524,7 @@ $(function(){
                 break;
 
             case "entity-substitutions":
-                for (var i=0; i<tokens.value.length; i++) {
+                for (var i=0; i<tokens.values.length; i++) {
                     if (tokens.entity_substitutions[i]) {
                         mask.push(i);
                     }
@@ -532,7 +532,7 @@ $(function(){
                 break;
 
             case "filler-words":
-                for (var i=0; i<tokens.value.length; i++) {
+                for (var i=0; i<tokens.values.length; i++) {
                     if (tokens.filler_words[i]) {
                         mask.push(i);
                     }
@@ -540,7 +540,7 @@ $(function(){
                 break;
 
             case "negations":
-                for (var i=0; i<tokens.value.length; i++) {
+                for (var i=0; i<tokens.values.length; i++) {
                     if (tokens.negations[i]) {
                         mask.push(i);
                     }
@@ -550,7 +550,7 @@ $(function(){
             case "noun-clusters":
                 var span = [null, null];
                 var clusterNum = 0;
-                for (var i=0; i<tokens.value.length; i++) {
+                for (var i=0; i<tokens.values.length; i++) {
                     if (tokens.noun_clusters[i] != clusterNum) {
                         if (span[0] != null) {
                             span[1] = i-1;
@@ -568,7 +568,7 @@ $(function(){
                 break;
 
             case "passive-voice":
-                for (var i=0; i<tokens.value.length; i++) {
+                for (var i=0; i<tokens.values.length; i++) {
                     if (tokens.passive_voice_cases[i]) {
                         mask.push(i);
                     }
@@ -576,8 +576,8 @@ $(function(){
                 break;
 
             case "word-freq":
-                for (var i=0; i<tokens.stem.length; i++) {
-                    if (tokens.stem[i]==data) {
+                for (var i=0; i<tokens.stems.length; i++) {
+                    if (tokens.stems[i]==data) {
                         mask.push(i);
                     }
                 }
@@ -586,8 +586,8 @@ $(function(){
             case "bigram-freq":
                 var span = [0, 0];
                 var count = 0;
-                for (var i=0; i<tokens.stem.length; i++) {
-                    if ((count>0) && (tokens.stem[i]==data[count])) {
+                for (var i=0; i<tokens.stems.length; i++) {
+                    if ((count>0) && (tokens.stems[i]==data[count])) {
                         count = count + 1;
                         if (count==2) {
                             span[1] = i;
@@ -595,10 +595,10 @@ $(function(){
                             count = 0;
                             span = [0, 0];
                         }
-                    } else if (tokens.stem[i]==data[0]) {
+                    } else if (tokens.stems[i]==data[0]) {
                         count = 1;
                         span[0] = i;
-                    } else if (tokens.stem[i]) {
+                    } else if (tokens.stems[i]) {
                         count = 0;
                     }
                 }
@@ -607,8 +607,8 @@ $(function(){
             case "trigram-freq":
                 var span = [0, 0];
                 var count = 0;
-                for (var i=0; i<tokens.stem.length; i++) {
-                    if ((count>0) && (tokens.stem[i]==data[count])) {
+                for (var i=0; i<tokens.stems.length; i++) {
+                    if ((count>0) && (tokens.stems[i]==data[count])) {
                         count = count + 1;
                         if (count==3) {
                             span[1] = i;
@@ -616,10 +616,10 @@ $(function(){
                             count = 0;
                             span = [0, 0];
                         }
-                    } else if (tokens.stem[i]==data[0]) {
+                    } else if (tokens.stems[i]==data[0]) {
                         count = 1;
                         span[0] = i;
-                    } else if (tokens.stem[i]) {
+                    } else if (tokens.stems[i]) {
                         count = 0;
                     }
                 }
@@ -657,7 +657,7 @@ $(function(){
         // form html string token by token
         var idxText = 0;
         var idxTokens = 0;
-        var token = tokens.value[idxTokens];
+        var token = tokens.values[idxTokens];
         while (idxText<text.length) {
 
             // add spaces and new lines between tokens
@@ -722,8 +722,8 @@ $(function(){
 
             // prepare the next loop iteration
             idxTokens = idxTokens + 1;
-            if (idxTokens<tokens.value.length) {
-                token = tokens.value[idxTokens];
+            if (idxTokens<tokens.values.length) {
+                token = tokens.values[idxTokens];
             }
 
         }

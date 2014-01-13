@@ -78,8 +78,8 @@ def analyze_text(html, app):
     sents_tokens = [nltk.word_tokenize(sent) for sent in sents]
     app.logger.debug('%s', sents_tokens)
     tokens = [token for sent in sents_tokens for token in sent]
-    data['value'] = tokens
-    data['sentence_number'] = [(idx+1) for idx, sent in enumerate(sents_tokens) for token in sent]
+    data['values'] = tokens
+    data['sentence_numbers'] = [(idx+1) for idx, sent in enumerate(sents_tokens) for token in sent]
 
     # find words
     sents_words = [[token.lower() for token in sent if (token[0].isalnum() or (token in
@@ -95,35 +95,35 @@ def analyze_text(html, app):
     # find word stems
     stems = [stemmer.stem(word) for word in words]
     app.logger.debug('%s', stems)
-    data['stem'] = [None] * len(tokens)
+    data['stems'] = [None] * len(tokens)
     for idx, stem in enumerate(stems):
-        data['stem'][word2token_map[idx]] = stem
+        data['stems'][word2token_map[idx]] = stem
 
     # tag tokens as part-of-speech
     sents_tokens_tags = nltk.batch_pos_tag(sents_tokens)
-    data['part_of_speech'] = [pos for sent in sents_tokens_tags for (token, pos) in sent]
+    data['parts_of_speech'] = [pos for sent in sents_tokens_tags for (token, pos) in sent]
 
     # fix symbol and apostrophed verb tags
     for idx, token in enumerate(tokens):
         if not token[0].isalnum():
             if token in ["'m", "'re", "'ve"]:
-                data['part_of_speech'][idx] = 'VBP'
+                data['parts_of_speech'][idx] = 'VBP'
             elif token == "'s":
-                if data['part_of_speech'][idx] != 'POS':
-                    data['part_of_speech'][idx] = 'VBP'
+                if data['parts_of_speech'][idx] != 'POS':
+                    data['parts_of_speech'][idx] = 'VBP'
             elif token == "'d":
-                data['part_of_speech'][idx] = 'VBD'
+                data['parts_of_speech'][idx] = 'VBD'
             elif token == "'ll":
-                data['part_of_speech'][idx] = 'MD'
-            elif data['part_of_speech'][idx].isalnum():
-                data['part_of_speech'][idx] = 'SYM'
+                data['parts_of_speech'][idx] = 'MD'
+            elif data['parts_of_speech'][idx].isalnum():
+                data['parts_of_speech'][idx] = 'SYM'
 
     # fix some verbs ending in -ing being counted as nouns
     for idx, token in enumerate(tokens):
-        if (token[-3:] == 'ing') and (idx < len(tokens)) and (data['part_of_speech'][idx+1] == 'IN'):
-            data['part_of_speech'][idx] = 'VBG'
+        if (token[-3:] == 'ing') and (idx < len(tokens)) and (data['parts_of_speech'][idx+1] == 'IN'):
+            data['parts_of_speech'][idx] = 'VBG'
 
-    app.logger.debug('%s', data['part_of_speech'])
+    app.logger.debug('%s', data['parts_of_speech'])
 
     # find verb groups
     data['verb_groups'] = [None] * len(tokens)
@@ -135,13 +135,13 @@ def analyze_text(html, app):
                 verb_group_stack.append(idx)
         elif token in ['be', 'been', 'being', 'have', 'had']:
             verb_group_stack.append(idx)
-        elif data['part_of_speech'][idx][:2] == 'VB':
+        elif data['parts_of_speech'][idx][:2] == 'VB':
             verb_group_stack.append(idx)
             verb_group_count += 1
             for i in verb_group_stack:
                 data['verb_groups'][i] = verb_group_count
             verb_group_stack = []
-        elif data['part_of_speech'][idx][:2] not in ['RB', 'PD']:
+        elif data['parts_of_speech'][idx][:2] not in ['RB', 'PD']:
             if len(verb_group_stack) > 1:
                 verb_group_count += 1
                 for i in verb_group_stack:
@@ -190,7 +190,7 @@ def analyze_text(html, app):
                 sents_end_punct[-1] = token
             elif token[0].isalnum():
                 break
-    data['sentence_end_punctuation'] = [sents_end_punct[idx] for idx, sent in enumerate(sents_tokens) for token in sent]
+    data['sentence_end_punctuations'] = [sents_end_punct[idx] for idx, sent in enumerate(sents_tokens) for token in sent]
     if metrics['sentence_count']:
         metrics['declarative_ratio'] = (sents_end_punct.count('.') + sents_end_punct.count('...')) \
                                        / metrics['sentence_count']
@@ -204,13 +204,13 @@ def analyze_text(html, app):
 
     # count number of stopwords
     metrics['stopword_ratio'] = 0
-    data['stopword'] = [None] * len(tokens)
+    data['stopwords'] = [None] * len(tokens)
     for idx, word in enumerate(words):
         if word in stopset:
             metrics['stopword_ratio'] += 1
-            data['stopword'][word2token_map[idx]] = True
+            data['stopwords'][word2token_map[idx]] = True
         else:
-            data['stopword'][word2token_map[idx]] = False
+            data['stopwords'][word2token_map[idx]] = False
     if metrics['word_count']:
         metrics['stopword_ratio'] /= metrics['word_count']
 
@@ -251,7 +251,7 @@ def analyze_text(html, app):
     adjective_count = 0
     adverb_count = 0
     modal_count = 0
-    for tag in data['part_of_speech']:
+    for tag in data['parts_of_speech']:
         if tag[:2] == 'NN':
             noun_count += 1
         elif tag[:2] in ['PR', 'WP', 'EX']:
@@ -300,17 +300,17 @@ def analyze_text(html, app):
     data['filler_words'] = [None] * len(tokens)
     for idx_word, word in enumerate(words):
         idx = word2token_map[idx_word]
-        data['nominalizations'][idx] = (data['number_of_characters'][idx] > 7) and (data['part_of_speech'][idx] != 'NNP')\
+        data['nominalizations'][idx] = (data['number_of_characters'][idx] > 7) and (data['parts_of_speech'][idx] != 'NNP')\
                                         and (nominalization_re.search(word) is not None)
-        data['weak_verbs'][idx] = (data['part_of_speech'][idx][:2] == 'VB') and (data['stem'][idx] in dict_weak_verbs)
+        data['weak_verbs'][idx] = (data['parts_of_speech'][idx][:2] == 'VB') and (data['stems'][idx] in dict_weak_verbs)
         if data['weak_verbs'][idx] and auxiliary_verbs[idx]:
             data['weak_verbs'][idx] = False
             weak_verb_count_adjustment += 1
         data['entity_substitutions'][idx] = (word in dict_entity_substitutions)
         if word in ['this', 'that']:
-            if (idx > 0) and (data['part_of_speech'][idx-1][:2] in ['NN', 'PR']):
+            if (idx > 0) and (data['parts_of_speech'][idx-1][:2] in ['NN', 'PR']):
                 data['entity_substitutions'][idx] = False
-            if (idx < len(tokens)) and ((data['part_of_speech'][idx+1][:2] in ['NN', 'PR', 'WP', 'JJ', 'DT', 'WD', 'WP'])
+            if (idx < len(tokens)) and ((data['parts_of_speech'][idx+1][:2] in ['NN', 'PR', 'WP', 'JJ', 'DT', 'WD', 'WP'])
                                         or (tokens[idx+1] in ['there', 'that', 'this', 'here'])):
                 data['entity_substitutions'][idx] = False
         data['filler_words'][idx] = (word in dict_fillers)
@@ -352,7 +352,7 @@ def analyze_text(html, app):
     total_noun_count_in_cluster = 0
     noun_cluster_span = [None, None]
     for idx, token in enumerate(tokens):
-        if data['part_of_speech'][idx][:2] == 'NN':
+        if data['parts_of_speech'][idx][:2] == 'NN':
             if noun_cluster_span[0] is None:
                 noun_cluster_span = [idx, idx+1]
                 noun_count_in_cluster = 1
@@ -377,7 +377,7 @@ def analyze_text(html, app):
     passive_voice_count = 0
     for i in range(verb_group_count):
         verb_group_stack = [idx for idx in range(len(tokens)) if data['verb_groups'][idx] == i+1]
-        if data['part_of_speech'][verb_group_stack[-1]] in ['VBN', 'VBD']:
+        if data['parts_of_speech'][verb_group_stack[-1]] in ['VBN', 'VBD']:
             for j in verb_group_stack[:-1]:
                 if tokens[j] in ["am", "'m", "is", "'s", "are", "'re", "was", "were", "be", "been", "being"]:
                     passive_voice_count += 1
