@@ -125,6 +125,32 @@ def analyze_text(html, app):
 
     app.logger.debug('%s', data['part_of_speech'])
 
+    # find verb groups
+    data['verb_groups'] = [None] * len(tokens)
+    verb_group_stack = []
+    verb_group_count = 0
+    for idx, token in enumerate(tokens):
+        if not verb_group_stack:
+            if token in ["be", "am", "'m", "is", "'s", "are", "'re", "was", "were", "will", "'ll", "wo", "have", "'ve", "has", "had"]:
+                verb_group_stack.append(idx)
+        elif token in ['be', 'been', 'being', 'have', 'had']:
+            verb_group_stack.append(idx)
+        elif data['part_of_speech'][idx][:2] == 'VB':
+            verb_group_stack.append(idx)
+            verb_group_count += 1
+            for i in verb_group_stack:
+                data['verb_groups'][i] = verb_group_count
+            verb_group_stack = []
+        elif data['part_of_speech'][idx][:2] not in ['RB', 'PD']:
+            if len(verb_group_stack) > 1:
+                verb_group_count += 1
+                for i in verb_group_stack:
+                    data['verb_groups'][i] = verb_group_count
+            verb_group_stack = []
+    app.logger.debug('%s', data['verb_groups'])
+
+
+
     ### compute metrics on parsed data
 
     # count number of sentences
@@ -258,9 +284,18 @@ def analyze_text(html, app):
         metrics['modal_ratio'] = 0
         metrics['other_pos_ratio'] = 0
 
+    # find auxiliary verbs
+    auxiliary_verbs = [False] * len(tokens)
+    for i in range(verb_group_count):
+        verb_group_stack = [idx for idx in range(len(tokens)) if data['verb_groups'][idx] == i+1]
+        for j in verb_group_stack[:-1]:
+            auxiliary_verbs[j] = True
+    app.logger.debug('%s', auxiliary_verbs)
+
     # find nominalizations, weak verbs, entity substitutes, and filler words
     data['nominalizations'] = [None] * len(tokens)
     data['weak_verbs'] = [None] * len(tokens)
+    weak_verb_count_adjustment = 0
     data['entity_substitutions'] = [None] * len(tokens)
     data['filler_words'] = [None] * len(tokens)
     for idx_word, word in enumerate(words):
@@ -268,6 +303,9 @@ def analyze_text(html, app):
         data['nominalizations'][idx] = (data['number_of_characters'][idx] > 7) and (data['part_of_speech'][idx] != 'NNP')\
                                         and (nominalization_re.search(word) is not None)
         data['weak_verbs'][idx] = (data['part_of_speech'][idx][:2] == 'VB') and (data['stem'][idx] in dict_weak_verbs)
+        if data['weak_verbs'][idx] and auxiliary_verbs[idx]:
+            data['weak_verbs'][idx] = False
+            weak_verb_count_adjustment += 1
         data['entity_substitutions'][idx] = (word in dict_entity_substitutions)
         if word in ['this', 'that']:
             if (idx > 0) and (data['part_of_speech'][idx-1][:2] in ['NN', 'PR']):
@@ -284,7 +322,7 @@ def analyze_text(html, app):
         metrics['nominalization_ratio'] = 0
         metrics['entity_substitution_ratio'] = 0
     if verb_count > 0:
-        metrics['weak_verb_ratio'] = data['weak_verbs'].count(True) / verb_count
+        metrics['weak_verb_ratio'] = data['weak_verbs'].count(True) / (verb_count - weak_verb_count_adjustment)
     else:
         metrics['weak_verb_ratio'] = 0
     if len(words) > 0:
@@ -333,6 +371,23 @@ def analyze_text(html, app):
         metrics['noun_cluster_ratio'] = total_noun_count_in_cluster / noun_count
     else:
         metrics['noun_cluster_ratio'] = 0
+
+    # find and count passive voice cases
+    data['passive_voice_cases'] = [None] * len(tokens)
+    passive_voice_count = 0
+    for i in range(verb_group_count):
+        verb_group_stack = [idx for idx in range(len(tokens)) if data['verb_groups'][idx] == i+1]
+        if data['part_of_speech'][verb_group_stack[-1]] in ['VBN', 'VBD']:
+            for j in verb_group_stack[:-1]:
+                if tokens[j] in ["am", "'m", "is", "'s", "are", "'re", "was", "were", "be", "been", "being"]:
+                    passive_voice_count += 1
+                    data['passive_voice_cases'][j] = passive_voice_count
+                    data['passive_voice_cases'][verb_group_stack[-1]] = passive_voice_count
+                    break
+    if metrics['sentence_count']:
+        metrics['passive_voice_ratio'] = passive_voice_count / metrics['sentence_count']
+    else:
+        metrics['passive_voice_ratio'] = 0
 
     # count word, bigram, and trigram frequencies
     bcf = nltk.TrigramCollocationFinder.from_words(stems)
