@@ -105,14 +105,24 @@ def analyze_text(html, app):
 
     # fix symbol and apostrophed verb tags
     for idx, token in enumerate(tokens):
-        if (not token[0].isalnum()) and (data['part_of_speech'][idx].isalnum()):
-            data['part_of_speech'][idx] = 'SYM'
-        if token in ["'m", "'re", "'ve"]:
-            data['part_of_speech'][idx] = 'VBP'
-        elif token == "'d":
-            data['part_of_speech'][idx] = 'VBD'
-        elif token == "'ll":
-            data['part_of_speech'][idx] = 'MD'
+        if not token[0].isalnum():
+            if token in ["'m", "'re", "'ve"]:
+                data['part_of_speech'][idx] = 'VBP'
+            elif token == "'s":
+                if data['part_of_speech'][idx] != 'POS':
+                    data['part_of_speech'][idx] = 'VBP'
+            elif token == "'d":
+                data['part_of_speech'][idx] = 'VBD'
+            elif token == "'ll":
+                data['part_of_speech'][idx] = 'MD'
+            elif data['part_of_speech'][idx].isalnum():
+                data['part_of_speech'][idx] = 'SYM'
+
+    # fix some verbs ending in -ing being counted as nouns
+    for idx, token in enumerate(tokens):
+        if (token[-3:] == 'ing') and (idx < len(tokens)) and (data['part_of_speech'][idx+1] == 'IN'):
+            data['part_of_speech'][idx] = 'VBG'
+
     app.logger.debug('%s', data['part_of_speech'])
 
     ### compute metrics on parsed data
@@ -296,6 +306,33 @@ def analyze_text(html, app):
         metrics['negation_ratio'] = data['negations'].count(True) / metrics['sentence_count']
     else:
         metrics['negation_ratio'] = 0
+
+    # find and count noun clusters
+    data['noun_clusters'] = [None] * len(tokens)
+    noun_cluster_count = 0
+    noun_count_in_cluster = 0
+    total_noun_count_in_cluster = 0
+    noun_cluster_span = [None, None]
+    for idx, token in enumerate(tokens):
+        if data['part_of_speech'][idx][:2] == 'NN':
+            if noun_cluster_span[0] is None:
+                noun_cluster_span = [idx, idx+1]
+                noun_count_in_cluster = 1
+            else:
+                noun_cluster_span[1] = idx+1
+                noun_count_in_cluster += 1
+        elif token not in ["'s", "of"]:
+            if noun_count_in_cluster >= 3:
+                noun_cluster_count += 1
+                data['noun_clusters'][noun_cluster_span[0]:noun_cluster_span[1]] = \
+                    [noun_cluster_count] * (noun_cluster_span[1] - noun_cluster_span[0])
+                total_noun_count_in_cluster += noun_count_in_cluster
+            noun_cluster_span = [None, None]
+            noun_count_in_cluster = 0
+    if noun_count > 0:
+        metrics['noun_cluster_ratio'] = total_noun_count_in_cluster / noun_count
+    else:
+        metrics['noun_cluster_ratio'] = 0
 
     # count word, bigram, and trigram frequencies
     bcf = nltk.TrigramCollocationFinder.from_words(stems)

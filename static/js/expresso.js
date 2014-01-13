@@ -273,6 +273,7 @@ $(function(){
         $("#entity-substitution-ratio").text((Math.round(metrics.entity_substitution_ratio * 1000) / 10).toString() + "%");
         $("#filler-ratio").text((Math.round(metrics.filler_ratio * 1000) / 10).toString() + "%");
         $("#negation-ratio").text((Math.round(metrics.negation_ratio * 1000) / 10).toString() + "%");
+        $("#noun-cluster-ratio").text((Math.round(metrics.noun_cluster_ratio * 1000) / 10).toString() + "%");
         if (metrics.word_freq.length > 0) {
             var freqWordHtml = "";
             for (var i=0; i<Math.min(metrics.word_freq.length, 10); i++) {
@@ -541,6 +542,26 @@ $(function(){
                 for (var i=0; i<tokens.value.length; i++) {
                     if (tokens.negations[i]) {
                         mask.push(i);
+                    }
+                }
+                break;
+
+            case "noun-clusters":
+                var span = [null, null];
+                var clusterNum = 0;
+                for (var i=0; i<tokens.value.length; i++) {
+                    if (tokens.noun_clusters[i] != clusterNum) {
+                        if (span[0] != null) {
+                            span[1] = i-1;
+                            console.log(span);
+                            mask.push(span);
+                            console.log(mask);
+                            span = [null, null];
+                        }
+                        if (tokens.noun_clusters[i]) {
+                            span[0] = i;
+                            clusterNum = tokens.noun_clusters[i];
+                        }
                     }
                 }
                 break;
