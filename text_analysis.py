@@ -17,6 +17,7 @@ newline_re = re.compile('\n["\(\[\{ ]*[A-Z]')
 nominalization_re = re.compile('(?:ion|ions|ism|isms|ty|ties|ment|ments|ness|nesses|ance|ances|ence|ences)$')
 stopset = set(nltk.corpus.stopwords.words('english'))
 stemmer = nltk.PorterStemmer()
+lemmatizer = nltk.WordNetLemmatizer()
 dict_cmu = nltk.corpus.cmudict.dict()
 dict_wn = nltk.corpus.wordnet
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/weak-verbs')) as f:
@@ -188,6 +189,27 @@ def analyze_text(html, app):
             data['expected_word_frequencies'][idx] = 0
             unmatched_stems.append(stem)
     app.logger.debug('unmatched stems (%d): %s', len(set(unmatched_stems)), set(unmatched_stems))
+
+    # find synonyms
+    data['synonyms'] = [None] * len(tokens)
+    for idx_word, word in enumerate(words):
+        idx = word2token_map[idx_word]
+        synonyms = []
+        pos_map = {'NN': ['n'], 'JJ': ['a', 's'], 'VB': ['v'], 'RB': ['r']}
+        if data['parts_of_speech'][idx][:2] in pos_map.keys():
+            pos = pos_map[data['parts_of_speech'][idx][:2]]
+            for synset in dict_wn.synsets(word):
+                if synset.pos in pos:
+                    synonyms.extend(synset.lemma_names)
+            synonyms = set(synonyms) - set([lemmatizer.lemmatize(word, pos=pos[0])])
+            synonyms = [syn for syn in list(synonyms) if ('_' not in syn)]
+            syn_stems = [stem_better(syn) for syn in synonyms]
+            syn_freqs = [(syn, dict_word_freq[syn_stems[i]]) if (syn_stems[i] in dict_word_freq.keys()) else (syn, 0)
+                         for i, syn in enumerate(synonyms)]
+            syn_freqs = sorted(syn_freqs, key=lambda x: x[1])
+            syn_freqs.reverse()
+            synonyms = [syn for syn, freq in syn_freqs]
+        data['synonyms'][idx] = synonyms
 
 
 
