@@ -17,7 +17,7 @@ newline_re = re.compile('\n["\(\[\{ ]*[A-Z]')
 nominalization_re = re.compile('(?:ion|ions|ism|isms|ty|ties|ment|ments|ness|nesses|ance|ances|ence|ences)$')
 stopset = set(nltk.corpus.stopwords.words('english'))
 stemmer = nltk.PorterStemmer()
-cmudict = nltk.corpus.cmudict.dict()
+dict_cmu = nltk.corpus.cmudict.dict()
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/weak-verbs')) as f:
     dict_weak_verbs = f.read().splitlines()
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/entity-substitutions')) as f:
@@ -258,9 +258,9 @@ def analyze_text(html, app):
     cmu_syllables_count = 0
     data['number_of_syllables'] = [None] * len(tokens)
     for idx, word in enumerate(words):
-        if word in cmudict:
+        if word in dict_cmu:
             cmu_words_count += 1
-            syll_num = len([phoneme for phoneme in cmudict[word][0] if phoneme[-1].isdigit()])
+            syll_num = len([phoneme for phoneme in dict_cmu[word][0] if phoneme[-1].isdigit()])
             cmu_syllables_count += syll_num
             data['number_of_syllables'][word2token_map[idx]] = syll_num
     if cmu_words_count:
@@ -375,9 +375,9 @@ def analyze_text(html, app):
         idx = word2token_map[idx_word]
         if word in ["not", "n't", "no", "neither", "nor", "nothing", "nobody", "nowhere", "never"]:
             data['negations'][idx] = True
-        elif (word[:2] == 'un') and (word[2:] in cmudict):
+        elif (word[:2] == 'un') and (word[2:] in dict_cmu):
             data['negations'][idx] = True
-        elif (word[:3] == 'mis') and (word[3:] in cmudict):
+        elif (word[:3] == 'mis') and (word[3:] in dict_cmu):
             data['negations'][idx] = True
         else:
             data['negations'][idx] = False

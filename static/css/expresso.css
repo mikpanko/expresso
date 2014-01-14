@@ -13,7 +13,6 @@ p, td {
 
 .data-text-empty:before {
     content: attr(data-placeholder);
-    float: left;
     color: #b3b3b3;
 }
 
