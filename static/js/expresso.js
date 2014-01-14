@@ -147,7 +147,7 @@ $(function(){
                     },
                     success: function(result, textStatus, error) {
 
-                        // success - display analysis results
+                        // success - display analysis results and add synonym popovers
                         text = result.text;
                         tokens = result.tokens;
                         metrics = result.metrics;
@@ -159,6 +159,7 @@ $(function(){
                         analyzeTextButton.button('reset');
                         modifiedText = false;
                         $(".metric").addClass("metric-active");
+                        addSynonymPopovers();
 
                     },
                     error: function(request, textStatus, error) {
@@ -190,12 +191,13 @@ $(function(){
 
                     } else {
 
-                        // add a highlight
+                        // add a highlight and synonym popovers
                         var maskNum = activeTokenMasks.indexOf(false);
                         tokenMasks[maskNum] = makeTokenMask(el.data("metric"), el.data("metric-data"));
                         textField.html(renderTokensToHtml());
                         activeTokenMasks[maskNum] = true;
                         el.addClass("nlp-highlighted-" + (maskNum+1).toString());
+                        addSynonymPopovers();
 
                     }
                 } else {
@@ -205,6 +207,7 @@ $(function(){
                     if (modifiedText) {
                         el.removeClass("metric-active");
                     }
+                    addSynonymPopovers();
 
                 }
             }
@@ -219,14 +222,10 @@ $(function(){
         if (classes.search("nlp-highlighted-")>=0) {
             var maskNum = parseInt(classes[classes.indexOf("nlp-highlighted-") + 16]) - 1;
             var className = "nlp-highlighted-" + (maskNum+1).toString();
-            $("span."+className, textField).after("NLP000DELETE");
-            var html = textField.html();
-            var spanRe = new RegExp("<span class=\"" + className + "\">", "mgi");
-            html = html.replace(spanRe, "").replace(/<\/span>NLP000DELETE/mgi, "");
-            textField.html(html);
             tokenMasks[maskNum] = null;
             activeTokenMasks[maskNum] = false;
             el.removeClass(className);
+            textField.html(renderTokensToHtml());
         }
     }
 
@@ -580,6 +579,14 @@ $(function(){
                 }
                 break;
 
+            case "synonyms":
+                for (var i=0; i<tokens.values.length; i++) {
+                    if ((tokens.synonyms[i]) && (tokens.synonyms[i].length > 0)) {
+                        mask.push(i);
+                    }
+                }
+                break;
+
             case "word-freq":
                 for (var i=0; i<tokens.stems.length; i++) {
                     if (tokens.stems[i]==data) {
@@ -684,6 +691,11 @@ $(function(){
                 }
             }
 
+            // add starting point of synonym span if needed
+            if ((tokens.synonyms[idxTokens]) && (tokens.synonyms[idxTokens].length > 0)) {
+                html = html + "<span class=\"nlp-hover\" id=\"token-" + idxTokens.toString() + "\">";
+            }
+
             // add token itself
             var tokenInText = null;
             if (["``", "''"].indexOf(token)>=0) {
@@ -718,6 +730,11 @@ $(function(){
             html = html + tokenInText;
             idxText = idxText + tokenInText.length;
 
+            // add ending point of synonym span if needed
+            if ((tokens.synonyms[idxTokens]) && (tokens.synonyms[idxTokens].length > 0)) {
+                html = html + "</span>";
+            }
+
             // add ending points of highlighted spans
             for (var i=0; i<spanEndTokens.length; i++) {
                 if (spanEndTokens[i].indexOf(idxTokens)>=0) {
@@ -733,6 +750,26 @@ $(function(){
 
         }
         return html;
+    }
+
+    // add synonym popovers
+    function addSynonymPopovers() {
+        for (var i=0; i<tokens.values.length; i++) {
+            if ((tokens.synonyms[i]) && (tokens.synonyms[i].length > 0)) {
+                var synonymHtml = [];
+                for (var j=0; j<Math.min(tokens.synonyms[i].length, 10); j++) {
+                    synonymHtml = synonymHtml + tokens.synonyms[i][j] + "<br>";
+                }
+                $("#token-" + i.toString()).data("content", synonymHtml.slice(0, synonymHtml.length-4));
+            }
+        }
+        var options = {
+            trigger: 'hover',
+            placement: 'bottom',
+            html: true,
+            delay: { show: 1000, hide: 100 }
+        }
+        $(".nlp-hover").popover(options);
     }
 
 //    // convert html to text
@@ -763,8 +800,10 @@ $(function(){
 
         $("div,p,br", el).after("\n");
         $("span.nlp-highlighted", el).before("HIGHLIGHT000START").after("HIGHLIGHT000END");
+        $("span.nlp-hover", el).before("HOVER000START").after("HOVER000END");
         return el.text().trim().replace(/\n/mgi, "<br>").replace(/HIGHLIGHT000START/mgi, "<span class=\"nlp-highlighted\">")
-            .replace(/HIGHLIGHT000END/mgi, "</span>");
+            .replace(/HIGHLIGHT000END/mgi, "</span>").replace(/HOVER000START/mgi, "<span class=\"nlp-hover\">")
+            .replace(/HOVER000END/mgi, "</span>");
     }
 
     // show alert

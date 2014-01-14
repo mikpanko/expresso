@@ -11,6 +11,10 @@ p, td {
     font-size: 18px;
 }
 
+.popover-content {
+    font-size: 18px;
+}
+
 .data-text-empty:before {
     content: attr(data-placeholder);
     color: #b3b3b3;
