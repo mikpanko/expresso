@@ -377,6 +377,8 @@ def analyze_text(html, app):
             data['negations'][idx] = True
         elif (word[:2] == 'un') and (word[2:] in cmudict):
             data['negations'][idx] = True
+        elif (word[:3] == 'mis') and (word[3:] in cmudict):
+            data['negations'][idx] = True
         else:
             data['negations'][idx] = False
     if metrics['sentence_count']:

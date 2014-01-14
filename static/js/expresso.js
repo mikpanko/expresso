@@ -115,7 +115,6 @@ $(function(){
             // get text
             //text = html2text(textField.html());
             text = textField.html();
-            console.log(text);
             var hasValidCharacters = false;
             var inputCharacters = textField.text();
             for (var i=0; i<inputCharacters.length; i++) {
@@ -155,7 +154,6 @@ $(function(){
                         spinner.stop();
                         $("#spinner-container").hide();
                         addMetricsToResultsTable();
-                        console.log(text);
                         textField.html(renderTokensToHtml());
                         resultsTable.show();
                         analyzeTextButton.button('reset');
@@ -555,9 +553,7 @@ $(function(){
                     if (tokens.noun_clusters[i] != clusterNum) {
                         if (span[0] != null) {
                             span[1] = i-1;
-                            console.log(span);
                             mask.push(span);
-                            console.log(mask);
                             span = [null, null];
                         }
                         if (tokens.noun_clusters[i]) {
