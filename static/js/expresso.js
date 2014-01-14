@@ -275,6 +275,7 @@ $(function(){
         $("#negation-ratio").text((Math.round(metrics.negation_ratio * 10) / 10).toString());
         $("#noun-cluster-ratio").text((Math.round(metrics.noun_cluster_ratio * 1000) / 10).toString() + "%");
         $("#passive-voice-ratio").text((Math.round(metrics.passive_voice_ratio * 10) / 10).toString());
+        $("#rare-word-ratio").text((Math.round(metrics.rare_word_ratio * 1000) / 10).toString() + "%");
         if (metrics.word_freq.length > 0) {
             var freqWordHtml = "";
             for (var i=0; i<Math.min(metrics.word_freq.length, 10); i++) {
@@ -570,6 +571,14 @@ $(function(){
             case "passive-voice":
                 for (var i=0; i<tokens.values.length; i++) {
                     if (tokens.passive_voice_cases[i]) {
+                        mask.push(i);
+                    }
+                }
+                break;
+
+            case "rare-words":
+                for (var i=0; i<tokens.values.length; i++) {
+                    if (tokens.expected_word_frequencies[i] == 0) {
                         mask.push(i);
                     }
                 }

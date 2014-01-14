@@ -10,6 +10,7 @@ from numpy import std
 html_div_br_div_re = re.compile('</div><div><br></div>')
 html_newline_re = re.compile('(<br|</div|</p)')
 quotation_re = re.compile(u'[\u00AB\u00BB\u201C\u201D\u201E\u201F\u2033\u2036\u301D\u301E]')
+apostrophe_re = re.compile(u'[\u02BC\u2019\u2032]')
 punct_error_re = re.compile('^(["\]\)\}]+)[ \n]')
 ellipsis_re = re.compile('\.\.\.["\(\)\[\]\{\} ] [A-Z]')
 newline_re = re.compile('\n["\(\[\{ ]*[A-Z]')
@@ -23,6 +24,31 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpo
     dict_entity_substitutions = f.read().splitlines()
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/fillers')) as f:
     dict_fillers = f.read().splitlines()
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/irregular-stems')) as f:
+    dict_irregular_stems_lines = f.read().splitlines()
+    dict_irregular_stems_draft = [line.split(',') for line in dict_irregular_stems_lines]
+    dict_irregular_stems = {}
+    for stem_old, stem_new in dict_irregular_stems_draft:
+        dict_irregular_stems[stem_old] = stem_new
+
+
+def stem_better(word):
+    stem = stemmer.stem(word.lower())
+    if stem in dict_irregular_stems:
+        stem = dict_irregular_stems[stem]
+    return stem
+
+
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/word-freq-coca')) as f:
+    dict_word_freq_lines = f.read().splitlines()
+    dict_word_freq_draft = [line.split(',') for line in dict_word_freq_lines]
+    dict_word_freq_draft = [(stem_better(word), float(freq)) for word, pos, freq in dict_word_freq_draft]
+    dict_word_freq = {}
+    for stem, freq in dict_word_freq_draft:
+        if stem in dict_word_freq.keys():
+            dict_word_freq[stem] += freq
+        else:
+            dict_word_freq[stem] = freq
 
 
 def analyze_text(html, app):
@@ -44,6 +70,7 @@ def analyze_text(html, app):
 
     # standardize all quotation marks
     text = quotation_re.sub('"', original_text)
+    text = apostrophe_re.sub("'", text)
 
     # tokenize text into sentences
     sents_draft = nltk.sent_tokenize(text)
@@ -93,7 +120,7 @@ def analyze_text(html, app):
             word2token_map.append(idx)
 
     # find word stems
-    stems = [stemmer.stem(word) for word in words]
+    stems = [stem_better(word) for word in words]
     app.logger.debug('%s', stems)
     data['stems'] = [None] * len(tokens)
     for idx, stem in enumerate(stems):
@@ -148,6 +175,18 @@ def analyze_text(html, app):
                     data['verb_groups'][i] = verb_group_count
             verb_group_stack = []
     app.logger.debug('%s', data['verb_groups'])
+
+    # find expected word frequencies
+    data['expected_word_frequencies'] = [None] * len(tokens)
+    unmatched_stems = []
+    for idx_word, stem in enumerate(stems):
+        idx = word2token_map[idx_word]
+        if stem in dict_word_freq.keys():
+            data['expected_word_frequencies'][idx] = dict_word_freq[stem]
+        else:
+            data['expected_word_frequencies'][idx] = 0
+            unmatched_stems.append(stem)
+    app.logger.debug('unmatched stems (%d): %s', len(set(unmatched_stems)), set(unmatched_stems))
 
 
 
@@ -388,6 +427,12 @@ def analyze_text(html, app):
         metrics['passive_voice_ratio'] = passive_voice_count / metrics['sentence_count']
     else:
         metrics['passive_voice_ratio'] = 0
+
+    # count rare words
+    if len(words):
+        metrics['rare_word_ratio'] = data['expected_word_frequencies'].count(0) / len(words)
+    else:
+        metrics['rare_word_ratio'] = 0
 
     # count word, bigram, and trigram frequencies
     bcf = nltk.TrigramCollocationFinder.from_words(stems)
