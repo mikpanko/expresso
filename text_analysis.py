@@ -18,6 +18,7 @@ nominalization_re = re.compile('(?:ion|ions|ism|isms|ty|ties|ment|ments|ness|nes
 stopset = set(nltk.corpus.stopwords.words('english'))
 stemmer = nltk.PorterStemmer()
 dict_cmu = nltk.corpus.cmudict.dict()
+dict_wn = nltk.corpus.wordnet
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/weak-verbs')) as f:
     dict_weak_verbs = f.read().splitlines()
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/entity-substitutions')) as f:
