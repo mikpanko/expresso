@@ -314,7 +314,6 @@ def analyze_text(html, app):
     verb_count = 0
     adjective_count = 0
     adverb_count = 0
-    modal_count = 0
     for tag in data['parts_of_speech']:
         if tag[:2] == 'NN':
             noun_count += 1
@@ -322,31 +321,34 @@ def analyze_text(html, app):
             pronoun_count += 1
             if tag in ['PRP', 'WP', 'EX']:
                 pronoun_nonpossesive_count += 1
-        elif tag[:2] == 'VB':
+        elif tag[:2] in ['VB', 'MD']:
             verb_count += 1
         elif tag[:2] == 'JJ':
             adjective_count += 1
         elif tag[:2] == 'RB':
             adverb_count += 1
-        elif tag[:2] == 'MD':
-            modal_count += 1
     if metrics['word_count']:
         metrics['noun_ratio'] = noun_count / metrics['word_count']
         metrics['pronoun_ratio'] = pronoun_count / metrics['word_count']
         metrics['verb_ratio'] = verb_count / metrics['word_count']
         metrics['adjective_ratio'] = adjective_count / metrics['word_count']
         metrics['adverb_ratio'] = adverb_count / metrics['word_count']
-        metrics['modal_ratio'] = modal_count / metrics['word_count']
         metrics['other_pos_ratio'] = 1 - metrics['noun_ratio'] - metrics['pronoun_ratio'] - metrics['verb_ratio'] \
-                                       - metrics['adjective_ratio'] - metrics['adverb_ratio'] - metrics['modal_ratio']
+                                       - metrics['adjective_ratio'] - metrics['adverb_ratio']
     else:
         metrics['noun_ratio'] = 0
         metrics['pronoun_ratio'] = 0
         metrics['verb_ratio'] = 0
         metrics['adjective_ratio'] = 0
         metrics['adverb_ratio'] = 0
-        metrics['modal_ratio'] = 0
         metrics['other_pos_ratio'] = 0
+
+    # count number of modals
+    modal_count = data['parts_of_speech'].count('MD')
+    if metrics['word_count']:
+        metrics['modal_ratio'] = modal_count / metrics['word_count']
+    else:
+        metrics['modal_ratio'] = 0
 
     # find auxiliary verbs
     auxiliary_verbs = [False] * len(tokens)

@@ -5,23 +5,34 @@ var tokenMasks = [null, null, null, null, null, null, null, null, null];
 var activeTokenMasks = [false, false, false, false, false, false, false, false, false];
 var modifiedText = false;
 var textField = null;
-var resultsTable = null;
+var metricsTables = null;
 var analyzeTextButton = null;
+var spinnerContainer = null;
+var alertContainer = null;
+var wordFreqMetricEl = null;
+var bigramFreqMetricEl = null;
+var trigramFreqMetricEl = null;
 
 $(function(){
 
     // run at start
     $(document).ready(function() {
 
+        // find important DOM elements for future use
         textField = $("#text-entry");
-        resultsTable = $("#results-table");
+        metricsTables = $("#metrics-tables");
         analyzeTextButton = $("#analyze-text");
+        spinnerContainer = $("#spinner-container");
+        alertContainer = $("#alert-container");
+        wordFreqMetricEl = $("#word-freq");
+        bigramFreqMetricEl = $("#bigram-freq");
+        trigramFreqMetricEl = $("#trigram-freq");
 
         // set navigation bar
         $(".navbar-all").removeClass("active");
 
         // hide results table
-        resultsTable.hide();
+        metricsTables.hide();
 
         // set column heights to screensize
         if ($(window).width() >= 992) {
@@ -50,7 +61,7 @@ $(function(){
             left: 'auto' // Left position relative to parent in px
         };
         var spinner = new Spinner(spinnerOpts);
-        $("#spinner-container").hide();
+        spinnerContainer.hide();
 
         // get rid of active state on the mobile menu button
         $(".navbar-toggle").on("click", function() {
@@ -128,13 +139,13 @@ $(function(){
 
                 // put UI in analyzing mode
                 analyzeTextButton.button("loading");
-                resultsTable.hide();
+                metricsTables.hide();
                 $(".metric-active").each(function(idx, el) {
                     el = $(el);
                     removeMetricHighlighting(el);
                 });
                 $(".metric").removeClass("metric-active");
-                $("#spinner-container").show();
+                spinnerContainer.show();
                 spinner.spin(document.getElementById("spinner-container"));
 
                 // send text to the server for analysis
@@ -152,10 +163,10 @@ $(function(){
                         tokens = result.tokens;
                         metrics = result.metrics;
                         spinner.stop();
-                        $("#spinner-container").hide();
-                        addMetricsToResultsTable();
+                        spinnerContainer.hide();
+                        addMetricsToMetricsTables();
                         textField.html(renderTokensToHtml());
-                        resultsTable.show();
+                        metricsTables.show();
                         analyzeTextButton.button('reset');
                         modifiedText = false;
                         $(".metric").addClass("metric-active");
@@ -240,7 +251,7 @@ $(function(){
     }
 
     // enter metrics into the results table
-    function addMetricsToResultsTable() {
+    function addMetricsToMetricsTables() {
         $("#character-count").text(metrics.character_count.toString());
         $("#word-count").text(metrics.word_count.toString());
         $("#vocabulary-size").text(metrics.vocabulary_size.toString());
@@ -290,41 +301,37 @@ $(function(){
                     metrics.word_freq[i][0] + '">' + metrics.word_freq[i][0] + '</span> (' +
                     metrics.word_freq[i][1].toString() + ')<br>';
             }
-            $("#word-freq").html(freqWordHtml.slice(0, freqWordHtml.length-4));
+            wordFreqMetricEl.html(freqWordHtml.slice(0, freqWordHtml.length-4));
         } else {
-            $("#word-freq").text("-");
+            wordFreqMetricEl.text("-");
         }
         if (metrics.bigram_freq.length > 0) {
-            $("#bigram-freq").html("");
+            bigramFreqMetricEl.html("");
             for (var i=0; i<Math.min(metrics.bigram_freq.length, 10); i++) {
-                $("#bigram-freq").append('<span class="metric" id="tmp-metric">' + metrics.bigram_freq[i][0][0] + ' ' +
+                bigramFreqMetricEl.append('<span class="metric" id="tmp-metric">' + metrics.bigram_freq[i][0][0] + ' ' +
                     metrics.bigram_freq[i][0][1] + '</span> (' + metrics.bigram_freq[i][1].toString() +
                     ')');
-                $("#tmp-metric").data('metric', 'bigram-freq');
-                $("#tmp-metric").data('metric-data', metrics.bigram_freq[i][0]);
-                $("#tmp-metric").removeAttr('id');
+                $("#tmp-metric").data('metric', 'bigram-freq').data('metric-data', metrics.bigram_freq[i][0]).removeAttr('id');
                 if (i < metrics.bigram_freq.length-1) {
-                    $("#bigram-freq").append('<br>');
+                    bigramFreqMetricEl.append('<br>');
                 }
             }
         } else {
-            $("#bigram-freq").text("-");
+            bigramFreqMetricEl.text("-");
         }
         if (metrics.trigram_freq.length > 0) {
-            $("#trigram-freq").html("");
+            trigramFreqMetricEl.html("");
             for (var i=0; i<Math.min(metrics.trigram_freq.length, 10); i++) {
-                $("#trigram-freq").append('<span class="metric" id="tmp-metric">' + metrics.trigram_freq[i][0][0] +
+                trigramFreqMetricEl.append('<span class="metric" id="tmp-metric">' + metrics.trigram_freq[i][0][0] +
                     ' ' + metrics.trigram_freq[i][0][1] + ' ' + metrics.trigram_freq[i][0][2] + '</span> (' +
                     metrics.trigram_freq[i][1].toString() + ')');
-                $("#tmp-metric").data('metric', 'trigram-freq');
-                $("#tmp-metric").data('metric-data', metrics.trigram_freq[i][0]);
-                $("#tmp-metric").removeAttr('id');
+                $("#tmp-metric").data('metric', 'trigram-freq').data('metric-data', metrics.trigram_freq[i][0]).removeAttr('id');
                 if (i < metrics.trigram_freq.length-1) {
-                    $("#trigram-freq").append('<br>');
+                    trigramFreqMetricEl.append('<br>');
                 }
             }
         } else {
-            $("#trigram-freq").text("-");
+            trigramFreqMetricEl.text("-");
         }
     }
 
@@ -419,7 +426,7 @@ $(function(){
 
             case "verbs":
                 for (var i=0; i<tokens.parts_of_speech.length; i++) {
-                    if (tokens.parts_of_speech[i].slice(0, 2)=="VB") {
+                    if (["VB", "MD"].indexOf(tokens.parts_of_speech[i].slice(0, 2))>=0) {
                         mask.push(i);
                     }
                 }
@@ -830,7 +837,7 @@ $(function(){
     function showAlert(alertStr) {
         var alertStartCode = '<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>';
         var alertEndCode = '</div>';
-        $("#alert-container").append(alertStartCode + alertStr + alertEndCode);
+        alertContainer.append(alertStartCode + alertStr + alertEndCode);
     }
 
 });
