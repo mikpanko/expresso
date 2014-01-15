@@ -770,7 +770,7 @@ $(function(){
             trigger: 'hover',
             placement: function() {
                 var el = $(this.$element.context);
-                if (($(window).height() - el.offset().top) > (30 + 25 * el.data("synonymNum"))) {
+                if (($(window).height() - el.offset().top) > (40 + 25 * el.data("synonymNum"))) {
                     return 'bottom'
                 } else {
                     return 'top'
@@ -795,7 +795,7 @@ $(function(){
     function cleanHtml(htmlStr) {
 
         // clean text pasted from MS Word or PDF
-        if ((htmlStr.indexOf('<w:WordDocument>') > -1) || ($("p.p1").length > 0)) {
+        if (($("p.MsoNormal").length > 0) || ($("p.p1").length > 0)) {
             htmlStr = htmlStr.replace(/\n/mgi, " ");
         }
 
