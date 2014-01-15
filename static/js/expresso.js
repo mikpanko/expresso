@@ -87,6 +87,7 @@ $(function(){
         textField.on("paste", function() {
             var el = $(this);
             setTimeout(function() {
+                console.log(el.html());
                 el.html(cleanHtml(el.html()));
             }, 10);
         });
@@ -147,7 +148,7 @@ $(function(){
                     },
                     success: function(result, textStatus, error) {
 
-                        // success - display analysis results and add synonym popovers
+                        // success - display analysis results and add synonym tooltips
                         text = result.text;
                         tokens = result.tokens;
                         metrics = result.metrics;
@@ -159,7 +160,7 @@ $(function(){
                         analyzeTextButton.button('reset');
                         modifiedText = false;
                         $(".metric").addClass("metric-active");
-                        addSynonymPopovers();
+                        addSynonymTooltips();
 
                     },
                     error: function(request, textStatus, error) {
@@ -191,13 +192,13 @@ $(function(){
 
                     } else {
 
-                        // add a highlight and synonym popovers
+                        // add a highlight and synonym tooltips
                         var maskNum = activeTokenMasks.indexOf(false);
                         tokenMasks[maskNum] = makeTokenMask(el.data("metric"), el.data("metric-data"));
                         textField.html(renderTokensToHtml());
                         activeTokenMasks[maskNum] = true;
                         el.addClass("nlp-highlighted-" + (maskNum+1).toString());
-                        addSynonymPopovers();
+                        addSynonymTooltips();
 
                     }
                 } else {
@@ -207,7 +208,7 @@ $(function(){
                     if (modifiedText) {
                         el.removeClass("metric-active");
                     }
-                    addSynonymPopovers();
+                    addSynonymTooltips();
 
                 }
             }
@@ -752,24 +753,34 @@ $(function(){
         return html;
     }
 
-    // add synonym popovers
-    function addSynonymPopovers() {
+    // add synonym tooltips
+    function addSynonymTooltips() {
         for (var i=0; i<tokens.values.length; i++) {
             if ((tokens.synonyms[i]) && (tokens.synonyms[i].length > 0)) {
-                var synonymHtml = [];
-                for (var j=0; j<Math.min(tokens.synonyms[i].length, 10); j++) {
+                var synonymHtml = "<div class=\"tooltip-text\">";
+                var synonymNum = Math.min(tokens.synonyms[i].length, 10);
+                for (var j=0; j<(synonymNum-1); j++) {
                     synonymHtml = synonymHtml + tokens.synonyms[i][j] + "<br>";
                 }
-                $("#token-" + i.toString()).data("content", synonymHtml.slice(0, synonymHtml.length-4));
+                synonymHtml = synonymHtml + tokens.synonyms[i][synonymNum-1] + "</div>";
+                $("#token-" + i.toString()).data("title", synonymHtml).data("synonymNum", synonymNum);
             }
         }
         var options = {
             trigger: 'hover',
-            placement: 'bottom',
+            placement: function() {
+                var el = $(this.$element.context);
+                if (($(window).height() - el.offset().top) > (30 + 25 * el.data("synonymNum"))) {
+                    return 'bottom'
+                } else {
+                    return 'top'
+                }
+            },
             html: true,
-            delay: { show: 1000, hide: 100 }
+            delay: { show: 100, hide: 100 },
+            container: 'body'
         }
-        $(".nlp-hover").popover(options);
+        $(".nlp-hover").tooltip(options);
     }
 
 //    // convert html to text

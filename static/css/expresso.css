@@ -9,10 +9,12 @@ p, td {
 
 .text-medium {
     font-size: 18px;
+    font-family: 'Georgia' !important;
 }
 
-.popover-content {
-    font-size: 18px;
+.tooltip-text {
+    font-size: 16px;
+    font-family: 'Georgia' !important;
 }
 
 .data-text-empty:before {
