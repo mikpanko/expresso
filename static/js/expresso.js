@@ -87,7 +87,6 @@ $(function(){
         textField.on("paste", function() {
             var el = $(this);
             setTimeout(function() {
-                console.log(el.html());
                 el.html(cleanHtml(el.html()));
             }, 10);
         });
@@ -214,6 +213,16 @@ $(function(){
             }
         });
 
+        $(document).on("dblclick", ".nlp-hover", function() {
+            var el = $(this);
+            var tokenNumStr = el.attr("id").slice(6);
+            var tooltipEl = $("#tooltip-" + tokenNumStr);
+            if (tooltipEl.length > 0) {
+                tooltipEl.parent().parent().remove();
+            } else {
+                el.tooltip("show");
+            }
+        });
 
     });
 
@@ -757,7 +766,7 @@ $(function(){
     function addSynonymTooltips() {
         for (var i=0; i<tokens.values.length; i++) {
             if ((tokens.synonyms[i]) && (tokens.synonyms[i].length > 0)) {
-                var synonymHtml = "<div class=\"tooltip-text\">";
+                var synonymHtml = "<div class=\"tooltip-text\" id=\"tooltip-" + i.toString() + "\">";
                 var synonymNum = Math.min(tokens.synonyms[i].length, 10);
                 for (var j=0; j<(synonymNum-1); j++) {
                     synonymHtml = synonymHtml + tokens.synonyms[i][j] + "<br>";
@@ -767,7 +776,7 @@ $(function(){
             }
         }
         var options = {
-            trigger: 'hover',
+            trigger: 'hover manual',
             placement: function() {
                 var el = $(this.$element.context);
                 if (($(window).height() - el.offset().top) > (40 + 25 * el.data("synonymNum"))) {
@@ -777,7 +786,7 @@ $(function(){
                 }
             },
             html: true,
-            delay: { show: 100, hide: 100 },
+            delay: { show: 3000, hide: 100 },
             container: 'body'
         }
         $(".nlp-hover").tooltip(options);
