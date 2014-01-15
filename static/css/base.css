@@ -1,0 +1,29 @@
+p, td {
+    font-family: 'Georgia' !important;
+}
+
+h2 {
+    font-family: 'Verdana' !important;
+    font-size: 28px;
+}
+
+h3 {
+    font-family: 'Verdana' !important;
+    font-size: 24px;
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+
+.text-large {
+    font-size: 22px;
+    font-family: 'Georgia' !important;
+}
+
+.text-medium {
+    font-size: 18px;
+    font-family: 'Georgia' !important;
+}
+
+.navbar-toggle {
+    cursor: pointer;
+}

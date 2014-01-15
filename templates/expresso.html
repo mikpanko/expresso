@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block javascript %}
+    <link href="/static/css/expresso.css" rel="stylesheet">
     <script type="text/javascript" src="/static/spin/spin.min.js"></script>
     <script type="text/javascript" src="/static/js/expresso.js"></script>
 {% endblock %}
@@ -20,7 +21,7 @@
                         id="analyze-text"><span class="glyphicon glyphicon-search"></span> Analyze text</button>
                 <div id="spinner-container"> </div>
                 <div id="metrics-tables">
-                    <p class="text-large">Editing tools</p>
+                    <p class="text-large">Editing tools <a href="/metrics#Editing_tools" class="metrics-info-link"><span class="glyphicon glyphicon-info-sign"></span></a></p>
                     <table class="table table-bordered table-hover text-medium">
                         <tr> <td><span class="metric" data-metric="weak-verbs">weak verbs</span></td> <td id="weak-verb-ratio"></td> </tr>
                         <tr> <td><span class="metric" data-metric="filler-words">filler words</span></td> <td id="filler-ratio"></td> </tr>
@@ -38,7 +39,7 @@
                         <tr> <td>frequent bigrams</td> <td id="bigram-freq"></td> </tr>
                         <tr> <td>frequent trigrams</td> <td id="trigram-freq"></td> </tr>
                     </table>
-                    <p class="text-large">General metrics</p>
+                    <p class="text-large">General metrics <a href="/metrics#General_metrics" class="metrics-info-link"><span class="glyphicon glyphicon-info-sign"></span></a></p>
                     <table class="table table-bordered table-hover text-medium">
                         <tr> <td>characters</td> <td id="character-count"></td> </tr>
                         <tr> <td>words</td> <td id="word-count"></td> </tr>
