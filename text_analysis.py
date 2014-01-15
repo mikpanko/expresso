@@ -75,8 +75,10 @@ def analyze_text(html, app):
     text = apostrophe_re.sub("'", text)
 
     # tokenize text into sentences
-    sents_draft = nltk.sent_tokenize(text)
+    text_eg_ie = text.replace('e.g.', 'e.---g.').replace('i.e.', 'i.---e.')
+    sents_draft = nltk.sent_tokenize(text_eg_ie)
     for idx, sent in enumerate(sents_draft[:]):
+        sents_draft[idx] = sents_draft[idx].replace('e.---g.', 'e.g.').replace('i.---e.', 'i.e.')
         if idx > 0:
             punct_error = punct_error_re.findall(sent)
             if punct_error:
