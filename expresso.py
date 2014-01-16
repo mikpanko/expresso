@@ -14,6 +14,11 @@ def expresso_route():
     return render_template('expresso.html')
 
 
+@app.route('/how-to-use')
+def how_to_use_route():
+    return render_template('how-to-use.html')
+
+
 @app.route('/metrics')
 def metrics_route():
     return render_template('metrics.html')
@@ -27,7 +32,7 @@ def about_route():
 @app.route('/analyze-text', methods=['POST'])
 def analyze():
     html = request.form.get('html', '')
-    text, tokens, metrics = analyze_text(html, app)
+    text, tokens, metrics = analyze_text(html)
     Text.create(text=text, timestamp=datetime.now().replace(microsecond=0), **metrics)
     return jsonify({'text': text, 'tokens': tokens, 'metrics': metrics})
 

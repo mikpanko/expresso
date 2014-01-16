@@ -134,8 +134,17 @@ $(function(){
                     break;
                 }
             }
+            var tooLong = (html2text(text).split(" ").length > 5000);
 
-            if (hasValidCharacters) {
+            if (!hasValidCharacters) {
+
+                showAlert("Enter valid text to analyze.");
+
+            } else if (tooLong) {
+
+                showAlert("Can only analyze texts less than 5000 words long.");
+
+            } else {
 
                 // put UI in analyzing mode
                 analyzeTextButton.button("loading");
@@ -179,8 +188,6 @@ $(function(){
                         showAlert("Cannot analyze text: " + error);
                     }
                 });
-            } else {
-                showAlert("Enter valid text to analyze.");
             }
 
         });
@@ -799,13 +806,13 @@ $(function(){
         $(".nlp-hover").tooltip(options);
     }
 
-//    // convert html to text
-//    function html2text(htmlStr) {
-//        htmlStr = htmlStr.replace(/<div><br><\/div>/mgi, "\n");
-//        var el = $("<div>").html(htmlStr);
-//        $("div,p,br", el).before("\n");
-//        return el.text().trim();
-//    }
+    // convert html to text
+    function html2text(htmlStr) {
+        htmlStr = htmlStr.replace(/<div><br><\/div>/mgi, "\n").replace(/&nbsp;/mgi, " ");
+        var el = $("<div>").html(htmlStr);
+        $("div,p,br", el).before("\n");
+        return el.text().trim();
+    }
 
     // clean html of formatting
     function cleanHtml(htmlStr) {

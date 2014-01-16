@@ -14,20 +14,27 @@
 <body>
 
 <nav class="navbar navbar-default" role="navigation">
-    <div class="navbar-header">
-        <div role="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-base">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12" id="navbar-container">
+                <div class="navbar-header">
+                    <div role="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-base">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </div>
+                    <a class="navbar-brand" href="/">Expresso</a>
+                </div>
+                <div class="collapse navbar-collapse" id="navbar-collapse-base">
+                    <ul class="nav navbar-nav">
+                        <li class="navbar-all" id="navbar-how-to-use"><a href="/how-to-use">How to use</a></li>
+                        <li class="navbar-all" id="navbar-metrics"><a href="/metrics">Metrics</a></li>
+                        <li class="navbar-all" id="navbar-about"><a href="/about">About</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <a class="navbar-brand" href="/">Expresso</a>
-    </div>
-    <div class="collapse navbar-collapse" id="navbar-collapse-base">
-        <ul class="nav navbar-nav">
-            <li class="navbar-all" id="navbar-metrics"><a href="/metrics">Metrics</a></li>
-            <li class="navbar-all" id="navbar-about"><a href="/about">About</a></li>
-        </ul>
     </div>
 </nav>
 

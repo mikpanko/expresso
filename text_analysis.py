@@ -1,10 +1,10 @@
 from __future__ import division
 import os
-import nltk
 import re
 from bs4 import BeautifulSoup
 import operator
 from numpy import std
+import nltk
 
 # pre-load and pre-compile required variables and methods
 html_div_br_div_re = re.compile('</div><div><br></div>')
@@ -20,13 +20,13 @@ stemmer = nltk.PorterStemmer()
 lemmatizer = nltk.WordNetLemmatizer()
 dict_cmu = nltk.corpus.cmudict.dict()
 dict_wn = nltk.corpus.wordnet
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/weak-verbs')) as f:
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpora/weak-verbs')) as f:
     dict_weak_verbs = f.read().splitlines()
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/entity-substitutions')) as f:
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpora/entity-substitutions')) as f:
     dict_entity_substitutions = f.read().splitlines()
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/fillers')) as f:
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpora/fillers')) as f:
     dict_fillers = f.read().splitlines()
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/irregular-stems')) as f:
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpora/irregular-stems')) as f:
     dict_irregular_stems_lines = f.read().splitlines()
     dict_irregular_stems_draft = [line.split(',') for line in dict_irregular_stems_lines]
     dict_irregular_stems = {}
@@ -41,7 +41,7 @@ def stem_better(word):
     return stem
 
 
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpora/word-freq-coca')) as f:
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpora/word-freq-coca')) as f:
     dict_word_freq_lines = f.read().splitlines()
     dict_word_freq_draft = [line.split(',') for line in dict_word_freq_lines]
     dict_word_freq_draft = [(stem_better(word), float(freq)) for word, pos, freq in dict_word_freq_draft]
@@ -53,13 +53,11 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/corpo
             dict_word_freq[stem] = freq
 
 
-def analyze_text(html, app):
+def analyze_text(html):
 
     # create data and metrics dictionaries
     data = dict()
     metrics = dict()
-
-    app.logger.debug('%s', html)
 
     ### parse text/html string
 
@@ -68,7 +66,6 @@ def analyze_text(html, app):
     html = html_newline_re.sub(lambda m: '\n'+m.group(0), html)
     soup = BeautifulSoup(html)
     original_text = soup.get_text().rstrip('\n')
-    app.logger.debug('%s', original_text)
 
     # standardize all quotation marks
     text = quotation_re.sub('"', original_text)
@@ -93,7 +90,6 @@ def analyze_text(html, app):
             sents_draft_2.append(sent[idx:(ellipsis_case.start() + 3)])
             idx = ellipsis_case.start() + 3
         sents_draft_2.append(sent[idx:])
-    app.logger.debug('%s', sents_draft_2)
 
     # separate sentences at newline characters correctly
     sents = []
@@ -103,11 +99,9 @@ def analyze_text(html, app):
             sents.append(sent[idx:(newline_case.start() + 1)])
             idx = newline_case.start() + 1
         sents.append(sent[idx:])
-    app.logger.debug('%s', sents)
 
     # tokenize sentences into words and punctuation marks
     sents_tokens = [nltk.word_tokenize(sent) for sent in sents]
-    app.logger.debug('%s', sents_tokens)
     tokens = [token for sent in sents_tokens for token in sent]
     data['values'] = tokens
     data['sentence_numbers'] = [(idx+1) for idx, sent in enumerate(sents_tokens) for token in sent]
@@ -115,7 +109,6 @@ def analyze_text(html, app):
     # find words
     sents_words = [[token.lower() for token in sent if (token[0].isalnum() or (token in
                     ["'m", "'re", "'ve", "'d", "'ll"]))] for sent in sents_tokens]
-    app.logger.debug('%s', sents_words)
     words = []
     word2token_map = []
     for idx, token in enumerate(tokens):
@@ -125,7 +118,6 @@ def analyze_text(html, app):
 
     # find word stems
     stems = [stem_better(word) for word in words]
-    app.logger.debug('%s', stems)
     data['stems'] = [None] * len(tokens)
     for idx, stem in enumerate(stems):
         data['stems'][word2token_map[idx]] = stem
@@ -154,8 +146,6 @@ def analyze_text(html, app):
         if (token[-3:] == 'ing') and (idx < len(tokens)) and (data['parts_of_speech'][idx+1] == 'IN'):
             data['parts_of_speech'][idx] = 'VBG'
 
-    app.logger.debug('%s', data['parts_of_speech'])
-
     # find verb groups
     data['verb_groups'] = [None] * len(tokens)
     verb_group_stack = []
@@ -178,7 +168,6 @@ def analyze_text(html, app):
                 for i in verb_group_stack:
                     data['verb_groups'][i] = verb_group_count
             verb_group_stack = []
-    app.logger.debug('%s', data['verb_groups'])
 
     # find expected word frequencies
     data['expected_word_frequencies'] = [None] * len(tokens)
@@ -190,7 +179,6 @@ def analyze_text(html, app):
         else:
             data['expected_word_frequencies'][idx] = 0
             unmatched_stems.append(stem)
-    app.logger.debug('unmatched stems (%d): %s', len(set(unmatched_stems)), set(unmatched_stems))
 
     # find synonyms
     data['synonyms'] = [None] * len(tokens)
@@ -212,7 +200,6 @@ def analyze_text(html, app):
             syn_freqs.reverse()
             synonyms = [syn for syn, freq in syn_freqs]
         data['synonyms'][idx] = synonyms
-
 
 
     ### compute metrics on parsed data
@@ -356,7 +343,6 @@ def analyze_text(html, app):
         verb_group_stack = [idx for idx in range(len(tokens)) if data['verb_groups'][idx] == i+1]
         for j in verb_group_stack[:-1]:
             auxiliary_verbs[j] = True
-    app.logger.debug('%s', auxiliary_verbs)
 
     # find nominalizations, weak verbs, entity substitutes, and filler words
     data['nominalizations'] = [None] * len(tokens)
@@ -496,5 +482,6 @@ def analyze_text(html, app):
         metrics['trigram_freq'] = sorted_trigram_freq
     else:
         metrics['trigram_freq'] = []
+
 
     return original_text, data, metrics

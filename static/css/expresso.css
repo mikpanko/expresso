@@ -65,6 +65,10 @@
     background-color: rgba(153, 153, 153, 0.5);
 }
 
+.nlp-hover {
+    cursor: pointer;
+}
+
 .metrics-info-link {
     float: right;
 }

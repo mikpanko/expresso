@@ -1,3 +1,7 @@
+html {
+    overflow-y: scroll;
+}
+
 p, td {
     font-family: 'Georgia' !important;
 }
@@ -22,6 +26,10 @@ h3 {
 .text-medium {
     font-size: 18px;
     font-family: 'Georgia' !important;
+}
+
+.navbar-all {
+    border-left: 1px solid #DDDDDD;
 }
 
 .navbar-toggle {
