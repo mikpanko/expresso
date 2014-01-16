@@ -388,7 +388,7 @@ def analyze_text(html):
         idx = word2token_map[idx_word]
         if word in ["not", "n't", "no", "neither", "nor", "nothing", "nobody", "nowhere", "never"]:
             data['negations'][idx] = True
-        elif (word[:2] == 'un') and (word[2:] in dict_cmu) and (data['stems'][idx] != 'unit'):
+        elif (word[:2] == 'un') and (word[2:] in dict_cmu) and (data['stems'][idx] not in ['unit', 'under']):
             data['negations'][idx] = True
         elif (word[:3] == 'mis') and (word[3:] in dict_cmu) and (data['stems'][idx] != 'miss'):
             data['negations'][idx] = True
