@@ -11,9 +11,10 @@ html_div_br_div_re = re.compile('</div><div><br></div>')
 html_newline_re = re.compile('(<br|</div|</p)')
 quotation_re = re.compile(u'[\u00AB\u00BB\u201C\u201D\u201E\u201F\u2033\u2036\u301D\u301E]')
 apostrophe_re = re.compile(u'[\u02BC\u2019\u2032]')
-punct_error_re = re.compile('^(["\]\)\}]+)[ \n]')
+punct_error_re = re.compile('^(["\]\)\}]+)(?:[ \n]|$)')
 ellipsis_re = re.compile('\.\.\.["\(\)\[\]\{\} ] [A-Z]')
 newline_re = re.compile('\n["\(\[\{ ]*[A-Z]')
+empty_sent_re = re.compile('^[\n ]*$')
 nominalization_re = re.compile('(?:ion|ions|ism|isms|ty|ties|ment|ments|ness|nesses|ance|ances|ence|ences)$')
 stopset = set(nltk.corpus.stopwords.words('english'))
 stemmer = nltk.PorterStemmer()
@@ -53,7 +54,7 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpora/word
             dict_word_freq[stem] = freq
 
 
-def analyze_text(html):
+def analyze_text(html, app):
 
     # create data and metrics dictionaries
     data = dict()
@@ -99,6 +100,13 @@ def analyze_text(html):
             sents.append(sent[idx:(newline_case.start() + 1)])
             idx = newline_case.start() + 1
         sents.append(sent[idx:])
+
+    # delete empty sentences
+    for idx, sent in enumerate(sents[:]):
+        if empty_sent_re.match(sent):
+            sents.pop(idx)
+
+    app.logger.debug('%s', sents)
 
     # tokenize sentences into words and punctuation marks
     sents_tokens = [nltk.word_tokenize(sent) for sent in sents]
@@ -187,18 +195,20 @@ def analyze_text(html):
         synonyms = []
         pos_map = {'NN': ['n'], 'JJ': ['a', 's'], 'VB': ['v'], 'RB': ['r']}
         if data['parts_of_speech'][idx][:2] in pos_map.keys():
-            pos = pos_map[data['parts_of_speech'][idx][:2]]
-            for synset in dict_wn.synsets(word):
-                if synset.pos in pos:
-                    synonyms.extend(synset.lemma_names)
-            synonyms = set(synonyms) - set([lemmatizer.lemmatize(word, pos=pos[0])])
-            synonyms = [syn for syn in list(synonyms) if ('_' not in syn)]
-            syn_stems = [stem_better(syn) for syn in synonyms]
-            syn_freqs = [(syn, dict_word_freq[syn_stems[i]]) if (syn_stems[i] in dict_word_freq.keys()) else (syn, 0)
-                         for i, syn in enumerate(synonyms)]
-            syn_freqs = sorted(syn_freqs, key=lambda x: x[1])
-            syn_freqs.reverse()
-            synonyms = [syn for syn, freq in syn_freqs]
+            if data['values'][idx][0].islower() or (idx == 0) or ((idx > 0) and
+                                                (data['values'][idx-1] in ['.', '?', '!', '"', '``', '(', '[', '{'])):
+                pos = pos_map[data['parts_of_speech'][idx][:2]]
+                for synset in dict_wn.synsets(word):
+                    if synset.pos in pos:
+                        synonyms.extend(synset.lemma_names)
+                synonyms = set(synonyms) - set([lemmatizer.lemmatize(word, pos=pos[0])])
+                synonyms = [syn for syn in list(synonyms) if ('_' not in syn)]
+                syn_stems = [stem_better(syn) for syn in synonyms]
+                syn_freqs = [(syn, dict_word_freq[syn_stems[i]]) if (syn_stems[i] in dict_word_freq.keys()) else (syn, 0)
+                             for i, syn in enumerate(synonyms)]
+                syn_freqs = sorted(syn_freqs, key=lambda x: x[1])
+                syn_freqs.reverse()
+                synonyms = [syn for syn, freq in syn_freqs]
         data['synonyms'][idx] = synonyms
 
 
@@ -347,7 +357,6 @@ def analyze_text(html):
     # find nominalizations, weak verbs, entity substitutes, and filler words
     data['nominalizations'] = [None] * len(tokens)
     data['weak_verbs'] = [None] * len(tokens)
-    weak_verb_count_adjustment = 0
     data['entity_substitutions'] = [None] * len(tokens)
     data['filler_words'] = [None] * len(tokens)
     for idx_word, word in enumerate(words):
@@ -357,8 +366,7 @@ def analyze_text(html):
         data['weak_verbs'][idx] = (data['parts_of_speech'][idx][:2] == 'VB') and (data['stems'][idx] in dict_weak_verbs)
         if data['weak_verbs'][idx] and auxiliary_verbs[idx]:
             data['weak_verbs'][idx] = False
-            weak_verb_count_adjustment += 1
-        data['entity_substitutions'][idx] = (word in dict_entity_substitutions)
+        data['entity_substitutions'][idx] = (word in dict_entity_substitutions) and (not data['values'][idx].isupper() or (word == 'i'))
         if word in ['this', 'that']:
             if (idx > 0) and (data['parts_of_speech'][idx-1][:2] in ['NN', 'PR']):
                 data['entity_substitutions'][idx] = False
@@ -374,7 +382,7 @@ def analyze_text(html):
         metrics['nominalization_ratio'] = 0
         metrics['entity_substitution_ratio'] = 0
     if verb_count > 0:
-        metrics['weak_verb_ratio'] = data['weak_verbs'].count(True) / (verb_count - weak_verb_count_adjustment)
+        metrics['weak_verb_ratio'] = data['weak_verbs'].count(True) / verb_count
     else:
         metrics['weak_verb_ratio'] = 0
     if len(words) > 0:
@@ -388,7 +396,7 @@ def analyze_text(html):
         idx = word2token_map[idx_word]
         if word in ["not", "n't", "no", "neither", "nor", "nothing", "nobody", "nowhere", "never"]:
             data['negations'][idx] = True
-        elif (word[:2] == 'un') and (word[2:] in dict_cmu) and (data['stems'][idx] not in ['unit', 'under']):
+        elif (word[:2] == 'un') and (word[2:] in dict_cmu) and (data['stems'][idx] not in ['unit', 'under', 'union']):
             data['negations'][idx] = True
         elif (word[:3] == 'mis') and (word[3:] in dict_cmu) and (data['stems'][idx] != 'miss'):
             data['negations'][idx] = True

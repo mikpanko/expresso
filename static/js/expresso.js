@@ -822,7 +822,7 @@ $(function(){
             htmlStr = htmlStr.replace(/\n/mgi, " ");
         }
 
-        htmlStr = htmlStr.replace(/<\/div><div><br><\/div>/mgi, "</div>" + "\n");
+        htmlStr = htmlStr.replace(/<\/div><div><br><\/div>/mgi, "</div>" + "\n").replace(/&nbsp;/mgi, " ");
         var el = $("<div>").html(htmlStr);
 
         // clean text pasted from PDF further
