@@ -124,17 +124,15 @@ $(function(){
             analyzeTextButton.blur();
 
             // get text
-            //text = html2text(textField.html());
-            text = textField.html();
+            text = html2text(textField.html());
             var hasValidCharacters = false;
-            var inputCharacters = textField.text();
-            for (var i=0; i<inputCharacters.length; i++) {
-                if ((inputCharacters.charCodeAt(i)>=33) && (inputCharacters.charCodeAt(i)<=126)) {
+            for (var i=0; i<text.length; i++) {
+                if ((text.charCodeAt(i)>=33) && (text.charCodeAt(i)<=126)) {
                     hasValidCharacters = true;
                     break;
                 }
             }
-            var tooLong = (html2text(text).split(" ").length > 5000);
+            var tooLong = (text.split(" ").length > 5000);
 
             if (!hasValidCharacters) {
 
@@ -250,10 +248,14 @@ $(function(){
         if (classes.search("nlp-highlighted-")>=0) {
             var maskNum = parseInt(classes[classes.indexOf("nlp-highlighted-") + 16]) - 1;
             var className = "nlp-highlighted-" + (maskNum+1).toString();
+            $("span."+className, textField).after("NLP000DELETE");
+            var html = textField.html();
+            var spanRe = new RegExp("<span class=\"" + className + "\">", "mgi");
+            html = html.replace(spanRe, "").replace(/<\/span>NLP000DELETE/mgi, "");
+            textField.html(html);
             tokenMasks[maskNum] = null;
             activeTokenMasks[maskNum] = false;
             el.removeClass(className);
-            textField.html(renderTokensToHtml());
         }
     }
 
@@ -778,32 +780,34 @@ $(function(){
 
     // add synonym tooltips
     function addSynonymTooltips() {
-        for (var i=0; i<tokens.values.length; i++) {
-            if ((tokens.synonyms[i]) && (tokens.synonyms[i].length > 0)) {
-                var synonymHtml = "<div class=\"tooltip-text\" id=\"tooltip-" + i.toString() + "\">";
-                var synonymNum = Math.min(tokens.synonyms[i].length, 10);
-                for (var j=0; j<(synonymNum-1); j++) {
-                    synonymHtml = synonymHtml + tokens.synonyms[i][j] + "<br>";
+        if (tokens) {
+            for (var i=0; i<tokens.values.length; i++) {
+                if ((tokens.synonyms[i]) && (tokens.synonyms[i].length > 0)) {
+                    var synonymHtml = "<div class=\"tooltip-text\" id=\"tooltip-" + i.toString() + "\">";
+                    var synonymNum = Math.min(tokens.synonyms[i].length, 10);
+                    for (var j=0; j<(synonymNum-1); j++) {
+                        synonymHtml = synonymHtml + tokens.synonyms[i][j] + "<br>";
+                    }
+                    synonymHtml = synonymHtml + tokens.synonyms[i][synonymNum-1] + "</div>";
+                    $("#token-" + i.toString()).data("title", synonymHtml).data("synonymNum", synonymNum);
                 }
-                synonymHtml = synonymHtml + tokens.synonyms[i][synonymNum-1] + "</div>";
-                $("#token-" + i.toString()).data("title", synonymHtml).data("synonymNum", synonymNum);
             }
+            var options = {
+                trigger: 'hover manual',
+                placement: function() {
+                    var el = $(this.$element.context);
+                    if (($(window).height() - el.offset().top) > (40 + 25 * el.data("synonymNum"))) {
+                        return 'bottom'
+                    } else {
+                        return 'top'
+                    }
+                },
+                html: true,
+                delay: { show: 3000, hide: 100 },
+                container: 'body'
+            }
+            $(".nlp-hover").tooltip(options);
         }
-        var options = {
-            trigger: 'hover manual',
-            placement: function() {
-                var el = $(this.$element.context);
-                if (($(window).height() - el.offset().top) > (40 + 25 * el.data("synonymNum"))) {
-                    return 'bottom'
-                } else {
-                    return 'top'
-                }
-            },
-            html: true,
-            delay: { show: 3000, hide: 100 },
-            container: 'body'
-        }
-        $(".nlp-hover").tooltip(options);
     }
 
     // convert html to text
@@ -816,6 +820,8 @@ $(function(){
 
     // clean html of formatting
     function cleanHtml(htmlStr) {
+
+        console.log(htmlStr);
 
         // clean text pasted from MS Word or PDF
         if (($("p.MsoNormal").length > 0) || ($("p.p1").length > 0)) {
