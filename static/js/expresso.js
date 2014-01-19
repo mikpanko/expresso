@@ -190,6 +190,19 @@ $(function(){
 
         });
 
+        // clean and copy text to clipboard
+        $("#clean-copy-text").click(function() {
+            var copyFrom = $('<textarea/>');
+            copyFrom.text(textField.text());
+            $('body').append(copyFrom);
+            setTimeout(function() {
+                copyFrom.select();
+                console.log(copyFrom.text());
+                document.execCommand('copy', true);
+                copyFrom.remove();
+            }, 10);
+        });
+
         // handle clicking on metrics
         $(document).on("click", ".metric", function() {
             var el = $(this);

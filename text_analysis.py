@@ -102,9 +102,7 @@ def analyze_text(html, app):
         sents.append(sent[idx:])
 
     # delete empty sentences
-    for idx, sent in enumerate(sents[:]):
-        if empty_sent_re.match(sent):
-            sents.pop(idx)
+    sents = [sent for sent in sents if not empty_sent_re.match(sent)]
 
     app.logger.debug('%s', sents)
 

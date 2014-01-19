@@ -19,10 +19,11 @@
 .metric-active {
     color: #1e0fbe;
     cursor: pointer;
+    border-bottom:1px dotted #1e0fbe;
 }
 
 .metric-active:hover {
-    text-decoration: underline;
+    /*text-decoration: underline;*/
 }
 
 .metric-active:active {
@@ -63,10 +64,6 @@
 
 .nlp-highlighted-9 {
     background-color: rgba(153, 153, 153, 0.5);
-}
-
-.nlp-hover {
-    cursor: pointer;
 }
 
 .metrics-info-link {
