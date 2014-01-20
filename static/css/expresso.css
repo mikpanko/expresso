@@ -71,7 +71,11 @@
 }
 
 #analyze-text {
-    margin-bottom: 50px;
+    margin-bottom: 20px;
+}
+
+#clean-text {
+    margin-bottom: 20px;
 }
 
 #text-entry {
@@ -82,4 +86,16 @@
 
 #spinner-container {
     height: 400px;
+}
+
+#synonyms-button {
+    cursor: pointer;
+}
+
+.glyphicon-ok-circle {
+    color: darkgreen;
+}
+
+.glyphicon-ban-circle {
+    color: darkred;
 }

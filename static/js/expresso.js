@@ -4,9 +4,12 @@ var metrics = null;
 var tokenMasks = [null, null, null, null, null, null, null, null, null];
 var activeTokenMasks = [false, false, false, false, false, false, false, false, false];
 var modifiedText = false;
+var displaySynonyms = true;
 var textField = null;
 var metricsTables = null;
 var analyzeTextButton = null;
+var cleanTextButton = null;
+var displaySynonymsButton = null;
 var spinnerContainer = null;
 var alertContainer = null;
 var wordFreqMetricEl = null;
@@ -22,6 +25,8 @@ $(function(){
         textField = $("#text-entry");
         metricsTables = $("#metrics-tables");
         analyzeTextButton = $("#analyze-text");
+        cleanTextButton = $("#clean-text");
+        displaySynonymsButton = $("#synonyms-button");
         spinnerContainer = $("#spinner-container");
         alertContainer = $("#alert-container");
         wordFreqMetricEl = $("#word-freq");
@@ -104,10 +109,8 @@ $(function(){
 
         // reset text, tokens, and metrics when text is changed
         textField.on("input", function() {
-            text = null;
-            tokens = null;
-            metrics = null;
             modifiedText = true;
+            analyzeTextButton.button("reset");
             $(".metric-active").each(function(idx, el) {
                 el = $(el);
                 var classes = el.attr("class");
@@ -174,10 +177,14 @@ $(function(){
                         addMetricsToMetricsTables();
                         textField.html(renderTokensToHtml());
                         metricsTables.show();
-                        analyzeTextButton.button('reset');
+                        analyzeTextButton.button("complete");
+                        setTimeout(function() {
+                            analyzeTextButton.prop("disabled", true);
+                        }, 10);
                         modifiedText = false;
                         $(".metric").addClass("metric-active");
-                        addSynonymTooltips();
+                        setDisplaySynonyms(true);
+                        cleanTextButton.removeClass("active");
 
                     },
                     error: function(request, textStatus, error) {
@@ -190,17 +197,28 @@ $(function(){
 
         });
 
-        // clean and copy text to clipboard
-        $("#clean-copy-text").click(function() {
-            var copyFrom = $('<textarea/>');
-            copyFrom.text(textField.text());
-            $('body').append(copyFrom);
-            setTimeout(function() {
-                copyFrom.select();
-                console.log(copyFrom.text());
-                document.execCommand('copy', true);
-                copyFrom.remove();
-            }, 10);
+        // clean text formatting for copy-pasting
+        cleanTextButton.click(function() {
+
+            // get rid of active state on the clean text button
+            cleanTextButton.blur();
+
+            $(".metric-active").each(function(idx, el) {
+                el = $(el);
+                removeMetricHighlighting(el);
+            });
+            setDisplaySynonyms(false);
+            textField.html(renderTokensToHtml());
+            cleanTextButton.addClass("active");
+        });
+
+        // handle clicking on synonyms button
+        displaySynonymsButton.click(function() {
+            if (displaySynonyms) {
+                setDisplaySynonyms(false);
+            } else {
+                setDisplaySynonyms(true);
+            }
         });
 
         // handle clicking on metrics
@@ -226,17 +244,22 @@ $(function(){
                         textField.html(renderTokensToHtml());
                         activeTokenMasks[maskNum] = true;
                         el.addClass("nlp-highlighted-" + (maskNum+1).toString());
-                        addSynonymTooltips();
+                        if (displaySynonyms) {
+                            addSynonymTooltips();
+                        }
+                        cleanTextButton.removeClass("active");
 
                     }
                 } else {
 
                     // if metric is currently highlighted turn it off
                     removeMetricHighlighting(el);
+                    if (displaySynonyms) {
+                        addSynonymTooltips();
+                    }
                     if (modifiedText) {
                         el.removeClass("metric-active");
                     }
-                    addSynonymTooltips();
 
                 }
             }
@@ -269,6 +292,32 @@ $(function(){
             tokenMasks[maskNum] = null;
             activeTokenMasks[maskNum] = false;
             el.removeClass(className);
+        }
+    }
+
+    // add or remove synonym display functionality from text
+    function setDisplaySynonyms(val) {
+        if (val) {
+
+            // add synonym display functionality
+            if (!modifiedText) {
+                displaySynonymsButton.removeClass("glyphicon-ban-circle").addClass("glyphicon-ok-circle");
+                displaySynonyms = true;
+                textField.html(renderTokensToHtml());
+                addSynonymTooltips();
+                cleanTextButton.removeClass("active");
+            }
+
+        } else {
+
+            // remove synonym display functionality
+            displaySynonymsButton.removeClass("glyphicon-ok-circle").addClass("glyphicon-ban-circle");
+            displaySynonyms = false;
+            $("span.nlp-hover", textField).after("NLP000DELETE");
+            var html = textField.html();
+            html = html.replace(/<span class="nlp-hover"[^>]*>/mgi, "").replace(/<\/span>NLP000DELETE/mgi, "");
+            textField.html(html);
+
         }
     }
 
@@ -624,6 +673,7 @@ $(function(){
                         mask.push(i);
                     }
                 }
+                setDisplaySynonyms(true);
                 break;
 
             case "word-freq":
@@ -731,7 +781,7 @@ $(function(){
             }
 
             // add starting point of synonym span if needed
-            if ((tokens.synonyms[idxTokens]) && (tokens.synonyms[idxTokens].length > 0)) {
+            if (displaySynonyms && (tokens.synonyms[idxTokens]) && (tokens.synonyms[idxTokens].length > 0)) {
                 html = html + "<span class=\"nlp-hover\" id=\"token-" + idxTokens.toString() + "\">";
             }
 
@@ -770,7 +820,7 @@ $(function(){
             idxText = idxText + tokenInText.length;
 
             // add ending point of synonym span if needed
-            if ((tokens.synonyms[idxTokens]) && (tokens.synonyms[idxTokens].length > 0)) {
+            if (displaySynonyms && (tokens.synonyms[idxTokens]) && (tokens.synonyms[idxTokens].length > 0)) {
                 html = html + "</span>";
             }
 
@@ -788,6 +838,7 @@ $(function(){
             }
 
         }
+
         return html;
     }
 
@@ -816,7 +867,7 @@ $(function(){
                     }
                 },
                 html: true,
-                delay: { show: 3000, hide: 100 },
+                delay: { show: 1500, hide: 100 },
                 container: 'body'
             }
             $(".nlp-hover").tooltip(options);
@@ -833,8 +884,6 @@ $(function(){
 
     // clean html of formatting
     function cleanHtml(htmlStr) {
-
-        console.log(htmlStr);
 
         // clean text pasted from MS Word or PDF
         if (($("p.MsoNormal").length > 0) || ($("p.p1").length > 0)) {
