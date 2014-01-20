@@ -2,5 +2,6 @@ expresso-venv
 .idea
 *.pyc
 .env
+.env-aws
 .env-local
 .DS_Store
