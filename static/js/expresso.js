@@ -10,6 +10,7 @@ var metricsTables = null;
 var analyzeTextButton = null;
 var cleanTextButton = null;
 var displaySynonymsButton = null;
+var synonymsHoverText = null;
 var spinnerContainer = null;
 var alertContainer = null;
 var wordFreqMetricEl = null;
@@ -27,6 +28,7 @@ $(function(){
         analyzeTextButton = $("#analyze-text");
         cleanTextButton = $("#clean-text");
         displaySynonymsButton = $("#synonyms-button");
+        synonymsHoverText = $("#synonyms-hover-text");
         spinnerContainer = $("#spinner-container");
         alertContainer = $("#alert-container");
         wordFreqMetricEl = $("#word-freq");
@@ -265,16 +267,16 @@ $(function(){
             }
         });
 
-        $(document).on("dblclick", ".nlp-hover", function() {
-            var el = $(this);
-            var tokenNumStr = el.attr("id").slice(6);
-            var tooltipEl = $("#tooltip-" + tokenNumStr);
-            if (tooltipEl.length > 0) {
-                tooltipEl.parent().parent().remove();
-            } else {
-                el.tooltip("show");
-            }
-        });
+//        $(document).on("dblclick", ".nlp-hover", function() {
+//            var el = $(this);
+//            var tokenNumStr = el.attr("id").slice(6);
+//            var tooltipEl = $("#tooltip-" + tokenNumStr);
+//            if (tooltipEl.length > 0) {
+//                tooltipEl.parent().parent().remove();
+//            } else {
+//                el.tooltip("show");
+//            }
+//        });
 
     });
 
@@ -302,6 +304,7 @@ $(function(){
             // add synonym display functionality
             if (!modifiedText) {
                 displaySynonymsButton.removeClass("glyphicon-ban-circle").addClass("glyphicon-ok-circle");
+                synonymsHoverText.removeClass("strike-through");
                 displaySynonyms = true;
                 textField.html(renderTokensToHtml());
                 addSynonymTooltips();
@@ -312,6 +315,7 @@ $(function(){
 
             // remove synonym display functionality
             displaySynonymsButton.removeClass("glyphicon-ok-circle").addClass("glyphicon-ban-circle");
+            synonymsHoverText.addClass("strike-through");
             displaySynonyms = false;
             $("span.nlp-hover", textField).after("NLP000DELETE");
             var html = textField.html();
@@ -857,7 +861,7 @@ $(function(){
                 }
             }
             var options = {
-                trigger: 'hover manual',
+                trigger: 'hover',
                 placement: function() {
                     var el = $(this.$element.context);
                     if (($(window).height() - el.offset().top) > (40 + 25 * el.data("synonymNum"))) {
@@ -867,7 +871,7 @@ $(function(){
                     }
                 },
                 html: true,
-                delay: { show: 1500, hide: 100 },
+                delay: { show: 1000, hide: 100 },
                 container: 'body'
             }
             $(".nlp-hover").tooltip(options);

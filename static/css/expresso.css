@@ -99,3 +99,7 @@
 .glyphicon-ban-circle {
     color: darkred;
 }
+
+.strike-through {
+    text-decoration: line-through;
+}
