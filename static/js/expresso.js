@@ -11,6 +11,7 @@ var analyzeTextButton = null;
 var cleanTextButton = null;
 var displaySynonymsButton = null;
 var synonymsHoverText = null;
+var synonymsMetric = null;
 var spinnerContainer = null;
 var alertContainer = null;
 var wordFreqMetricEl = null;
@@ -29,6 +30,7 @@ $(function(){
         cleanTextButton = $("#clean-text");
         displaySynonymsButton = $("#synonyms-button");
         synonymsHoverText = $("#synonyms-hover-text");
+        synonymsMetric = $("#synonyms-metric");
         spinnerContainer = $("#spinner-container");
         alertContainer = $("#alert-container");
         wordFreqMetricEl = $("#word-freq");
@@ -321,6 +323,7 @@ $(function(){
             var html = textField.html();
             html = html.replace(/<span class="nlp-hover"[^>]*>/mgi, "").replace(/<\/span>NLP000DELETE/mgi, "");
             textField.html(html);
+            removeMetricHighlighting(synonymsMetric);
 
         }
     }
