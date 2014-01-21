@@ -1,16 +1,83 @@
 {% extends "base.html" %}
 
 {% block javascript %}
+    <link href="/static/css/how-to-use.css" rel="stylesheet">
+    <script type="text/javascript" src="/static/spin/spin.min.js"></script>
     <script type="text/javascript" src="/static/js/how-to-use.js"></script>
 {% endblock %}
 
 {% block content %}
     <div class="container">
         <div class="row">
-            <div class="col-md-8">
-                <p class="text-large">Suggestions on how to use this site.</p>
+            <div class="col-md-6 col-md-offset-3" id="alert-container"> </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8 column-left">
+                <div class="text-large" id="how-to-use-text">
+                <p>Let’s demonstrate how to use the website on this text.</p>
+                <br>
+                <p>Click “Analyze text” button on the right.</p>
+                <br>
+                <p>After the text is processed, tables with results will appear under the button. Each row of the table displays a text metric. You can highlight occurrences of most metrics in text by clicking on the blue underlined links in the tables. You can select several of them at a time and, possibly, find unexpected metric correlations. Clicking on a metric the second time turns off the highlighting. Try it now.</p>
+                <br>
+                <p>“Synonyms” result behaves differently from other metrics. When its row has a green circle with a check mark, you can see synonyms by hovering mouse over many words in text (they are highlighted when you click on the link “synonyms” in the results table). Try it. Clicking on the green circle will disable synonym popups and turn the circle red with a diagonal line across. You can see synonyms again by clicking on the red circle.</p>
+                <br>
+                <p>All metrics are broken down into two groups: editing tools and general metrics. As the names suggest, the first group has useful tools for editing your texts and improving writing style while the second one contains other interesting metrics to explore. You can learn more about all metrics by hovering over their names in the results table, clicking on the blue information circles at the top of each table or going to the “Metrics” section of the website (via the menu at the top of the page).</p>
+                <br>
+                <p>You can edit text at any time, even while metrics are highlighted. However, once the text is changed, the metrics are not up to date anymore and you need to run “Analyze text” again to work with them. (This text is not editable, but texts on the main page are.)</p>
+                <br>
+                <p>Once you are done editing your text, click on the button “Clean text formatting” on the right. It will turn off all metric highlighting and synonyms. Now you can copy your text and when pasted outside it will be cleanly formatted.</p>
+                <br>
+                <p>Play around with the website: explore various online articles and news stories from different mass media, see what the metrics of your favorite writers are, and, of course, play with your own pieces of writing.</p>
+                </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4 column-right">
+                <button type="button" class="btn btn-primary btn-lg btn-block" data-loading-text="Analyzing..."
+                        data-complete-text="Analysis complete" id="analyze-text"><span class="glyphicon glyphicon-search"></span> Analyze text</button>
+                <div id="spinner-container"> </div>
+                <div id="metrics-tables">
+                    <button type="button" class="btn btn-default btn-lg btn-block" id="clean-text"><span class="glyphicon glyphicon-download"></span> Clean text formatting</button>
+                    <p class="text-large">Editing tools <a href="/metrics#editing-tools" target="_blank" class="metrics-info-link"><span class="glyphicon glyphicon-info-sign"></span></a></p>
+                    <table class="table table-bordered table-hover text-medium">
+                        <tr> <td><span class="metric" data-metric="synonyms">synonyms</span></td> <td><span class="glyphicon glyphicon-ok-circle" id="synonyms-button"></span>
+                                 <span> </span><span id="synonyms-hover-text">hover mouse over words in text to see synonyms</span></td> </tr>
+                        <tr> <td><span class="metric" data-metric="weak-verbs">weak verbs</span></td> <td id="weak-verb-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="filler-words">filler words</span></td> <td id="filler-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="nominalizations">nominalizations</span></td> <td id="nominalization-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="entity-substitutions">entity substitutions</span></td> <td id="entity-substitution-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="negations">negations per sentence</span></td> <td id="negation-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="noun-clusters">clustered nouns</span></td> <td id="noun-cluster-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="passive-voice">passive voice per sentence</span></td> <td id="passive-voice-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="modals">modals</span></td> <td id="modal-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="rare-words">rare words</span></td> <td id="rare-word-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="long-sents">extra long sentences</span></td> <td id="long-sentences-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="short-sents">extra short sentences</span></td> <td id="short-sentences-ratio"></td> </tr>
+                        <tr> <td>frequent words</td> <td id="word-freq"></td> </tr>
+                        <tr> <td>frequent bigrams</td> <td id="bigram-freq"></td> </tr>
+                        <tr> <td>frequent trigrams</td> <td id="trigram-freq"></td> </tr>
+                    </table>
+                    <p class="text-large">General metrics <a href="/metrics#general-metrics" target="_blank" class="metrics-info-link"><span class="glyphicon glyphicon-info-sign"></span></a></p>
+                    <table class="table table-bordered table-hover text-medium">
+                        <tr> <td>characters</td> <td id="character-count"></td> </tr>
+                        <tr> <td>words</td> <td id="word-count"></td> </tr>
+                        <tr> <td>vocabulary size</td> <td id="vocabulary-size"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="sents">sentences</span></td> <td id="sentence-count"></td> </tr>
+                        <tr> <td>words per sentence</td> <td><span id="words-per-sentence"></span><span id="std-of-words-per-sentence"></span></td> </tr>
+                        <tr> <td>syllables per word</td> <td id="syllables-per-word"></td> </tr>
+                        <tr> <td>characters per word</td> <td id="characters-per-word"></td> </tr>
+                        <tr> <td>readability grade</td> <td id="readability"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="nouns">nouns</span></td> <td id="noun-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="pronouns">pronouns</span></td> <td id="pronoun-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="verbs">verbs</span></td> <td id="verb-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="adjectives">adjectives</span></td> <td id="adjective-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="adverbs">adverbs</span></td> <td id="adverb-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="other-pos">other parts of speech</span></td> <td id="other-pos-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="declar-sents">declarative sentences</span></td> <td id="declarative-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="inter-sents">interrogative sentences</span></td> <td id="interrogative-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="exclam-sents">exclamative sentences</span></td> <td id="exclamative-ratio"></td> </tr>
+                        <tr> <td><span class="metric" data-metric="stopwords">stopwords</span></td> <td id="stopword-ratio"></td> </tr>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

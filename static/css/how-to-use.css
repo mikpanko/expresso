@@ -1,15 +1,10 @@
+p {
+    margin-bottom: 0px;
+}
+
 .tooltip-text {
     font-size: 16px;
     font-family: 'Georgia' !important;
-}
-
-.data-text-empty:before {
-    content: attr(data-placeholder);
-    color: #b3b3b3;
-}
-
-.data-text-filled:before {
-    content: '';
 }
 
 .column-left, .column-right {
@@ -74,10 +69,8 @@
     margin-bottom: 20px;
 }
 
-#text-entry {
-    margin-bottom: 50px;
-    min-height: 200px;
-    outline: none;
+#how-to-use-text {
+    margin-bottom: 30px;
 }
 
 #spinner-container {

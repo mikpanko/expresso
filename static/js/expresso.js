@@ -873,7 +873,7 @@ $(function(){
                 html: true,
                 delay: { show: 1000, hide: 100 },
                 container: 'body'
-            }
+            };
             $(".nlp-hover").tooltip(options);
         }
     }
