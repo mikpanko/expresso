@@ -14,6 +14,11 @@ def expresso_route():
     return render_template('expresso.html')
 
 
+@app.route('/how-to-use')
+def how_to_use_route():
+    return render_template('how-to-use.html')
+
+
 @app.route('/metrics')
 def metrics_route():
     return render_template('metrics.html')
