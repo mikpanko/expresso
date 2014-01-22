@@ -22,7 +22,7 @@ $(function(){
     $(document).ready(function() {
 
         // find important DOM elements for future use
-        textField = $("#how-to-use-text");
+        textField = $("#tutorial-text");
         metricsTables = $("#metrics-tables");
         analyzeTextButton = $("#analyze-text");
         cleanTextButton = $("#clean-text");
@@ -36,7 +36,7 @@ $(function(){
 
         // set navigation bar
         $(".navbar-all").removeClass("active");
-        $("#navbar-how-to-use").addClass("active");
+        $("#navbar-tutorial").addClass("active");
 
         // hide results table
         metricsTables.hide();
