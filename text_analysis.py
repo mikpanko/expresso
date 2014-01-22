@@ -54,7 +54,7 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpora/word
             dict_word_freq[stem] = freq
 
 
-def analyze_text(html, app):
+def analyze_text(html):
 
     # create data and metrics dictionaries
     data = dict()
@@ -103,8 +103,6 @@ def analyze_text(html, app):
 
     # delete empty sentences
     sents = [sent for sent in sents if not empty_sent_re.match(sent)]
-
-    app.logger.debug('%s', sents)
 
     # tokenize sentences into words and punctuation marks
     sents_tokens = [nltk.word_tokenize(sent) for sent in sents]
