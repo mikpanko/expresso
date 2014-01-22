@@ -55,6 +55,17 @@ $(function(){
         // focus on text field
         textField.focus();
 
+        // add metrics tooltips
+        $("[data-metric='weak-verbs']").data("title", '<div class="tooltip-text">overused vague verbs</div>');
+        var options = {
+            trigger: 'hover',
+            placement: 'top',
+            html: true,
+            delay: { show: 1000, hide: 100 },
+            container: 'body'
+        };
+        $(".metric").tooltip(options);
+
         // create loading state spinner
         var spinnerOpts = {
             lines: 13, // The number of lines to draw
