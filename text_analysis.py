@@ -197,14 +197,14 @@ def analyze_text(html):
                 for synset in dict_wn.synsets(word):
                     if synset.pos in pos:
                         synonyms.extend(synset.lemma_names)
-                synonyms = set(synonyms) - set([lemmatizer.lemmatize(word, pos=pos[0])])
-                synonyms = [syn for syn in list(synonyms) if ('_' not in syn)]
-                syn_stems = [stem_better(syn) for syn in synonyms]
-                syn_freqs = [(syn, dict_word_freq[syn_stems[i]]) if (syn_stems[i] in dict_word_freq.keys()) else (syn, 0)
-                             for i, syn in enumerate(synonyms)]
-                syn_freqs = sorted(syn_freqs, key=lambda x: x[1])
-                syn_freqs.reverse()
-                synonyms = [syn for syn, freq in syn_freqs]
+                synonyms = list(set(synonyms) - set([lemmatizer.lemmatize(word, pos=pos[0])]))
+                synonyms = [syn for syn in synonyms if ('_' not in syn)]
+                #syn_stems = [stem_better(syn) for syn in synonyms]
+                #syn_freqs = [(syn, dict_word_freq[syn_stems[i]]) if (syn_stems[i] in dict_word_freq.keys()) else (syn, 0)
+                #             for i, syn in enumerate(synonyms)]
+                #syn_freqs = sorted(syn_freqs, key=lambda x: x[1])
+                #syn_freqs.reverse()
+                #synonyms = [syn for syn, freq in syn_freqs]
         data['synonyms'][idx] = synonyms
 
 
