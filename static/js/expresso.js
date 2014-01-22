@@ -6,6 +6,7 @@ var activeTokenMasks = [false, false, false, false, false, false, false, false, 
 var modifiedText = false;
 var displaySynonyms = true;
 var textField = null;
+var textPlaceholder = null;
 var metricsTables = null;
 var analyzeTextButton = null;
 var cleanTextButton = null;
@@ -25,6 +26,7 @@ $(function(){
 
         // find important DOM elements for future use
         textField = $("#text-entry");
+        textPlaceholder = $("#text-placeholder");
         metricsTables = $("#metrics-tables");
         analyzeTextButton = $("#analyze-text");
         cleanTextButton = $("#clean-text");
@@ -49,6 +51,9 @@ $(function(){
             $('.column-left').css('height', columnHeight + 'px');
             $('.column-right').css('height', columnHeight + 'px');
         }
+
+        // focus on text field
+        textField.focus();
 
         // create loading state spinner
         var spinnerOpts = {
@@ -90,16 +95,16 @@ $(function(){
         });
 
         // handle text placeholder behavior
-        $("div[data-placeholder]").on("input", function() {
-            var el = $(this);
-            if (el.text().length) {
-                el.removeClass("data-text-empty");
-                el.addClass("data-text-filled");
+        textPlaceholder.on("click", function() {
+            textField.focus();
+        });
+        textField.on("input", function() {
+            if (textField.text().length) {
+                textPlaceholder.hide();
             }
             else {
-                el.removeClass("data-text-filled");
-                el.addClass("data-text-empty");
-                el.html("");
+                textPlaceholder.show();
+                textField.html("");
             }
         });
 

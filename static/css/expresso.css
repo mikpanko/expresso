@@ -1,15 +1,11 @@
+.placeholder-link {
+    color: cadetblue;
+    text-decoration: underline;
+}
+
 .tooltip-text {
     font-size: 16px;
     font-family: 'Georgia' !important;
-}
-
-.data-text-empty:before {
-    content: attr(data-placeholder);
-    color: #b3b3b3;
-}
-
-.data-text-filled:before {
-    content: '';
 }
 
 .column-left, .column-right {
@@ -75,9 +71,19 @@
 }
 
 #text-entry {
+    position: relative;
     margin-bottom: 50px;
     min-height: 200px;
     outline: none;
+}
+
+#text-placeholder {
+    position: absolute;
+    left: 15px;
+    top: 0;
+    z-index: 10;
+    cursor: text;
+    color: #b3b3b3;
 }
 
 #spinner-container {
