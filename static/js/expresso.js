@@ -8,6 +8,7 @@ var displaySynonyms = true;
 var textField = null;
 var textPlaceholder = null;
 var metricsTables = null;
+var metricsElements = null;
 var analyzeTextButton = null;
 var cleanTextButton = null;
 var displaySynonymsButton = null;
@@ -28,6 +29,7 @@ $(function(){
         textField = $("#text-entry");
         textPlaceholder = $("#text-placeholder");
         metricsTables = $("#metrics-tables");
+        metricsElements = $("[data-metric]");
         analyzeTextButton = $("#analyze-text");
         cleanTextButton = $("#clean-text");
         displaySynonymsButton = $("#synonyms-button");
@@ -57,6 +59,23 @@ $(function(){
 
         // add metrics tooltips
         $("[data-metric='weak-verbs']").data("title", '<div class="tooltip-text">overused vague verbs</div>');
+        $("[data-metric='filler-words']").data("title", '<div class="tooltip-text">unnecessary words typical for spoken language</div>');
+        $("[data-metric='nominalizations']").data("title", '<div class="tooltip-text">complex nouns extended from shorter verbs, adjectives or nouns</div>');
+        $("[data-metric='noun-clusters']").data("title", '<div class="tooltip-text">three or more consecutive nouns (and, possibly, "of")</div>');
+        $("[data-metric='long-sents']").data("title", '<div class="tooltip-text">&ge;40 words</div>');
+        $("[data-metric='short-sents']").data("title", '<div class="tooltip-text">&le;6 words</div>');
+        $("[data-metric='entity-substitutions']").data("title", '<div class="tooltip-text">pronouns and vague determiners</div>');
+        $("[data-metric='modals']").data("title", '<div class="tooltip-text">verb modifiers signifying ability or necessity</div>');
+        $("[data-metric='rare-words']").data("title", '<div class="tooltip-text">not among 5000 most frequent English words</div>');
+        $("[data-metric='sents']").data("title", '<div class="tooltip-text">highlighting of the first word in each sentence</div>');
+        $("[data-metric='vocabulary-size']").data("title", '<div class="tooltip-text">number of different word stems</div>');
+        $("[data-metric='readability']").data("title", '<div class="tooltip-text">comprehension level corresponding to school grade</div>');
+        $("[data-metric='declar-sents']").data("title", '<div class="tooltip-text">ending with "." or "..."</div>');
+        $("[data-metric='inter-sents']").data("title", '<div class="tooltip-text">ending with "?"</div>');
+        $("[data-metric='exclam-sents']").data("title", '<div class="tooltip-text">ending with "!"</div>');
+        $("[data-metric='stopwords']").data("title", '<div class="tooltip-text">most common words not carrying text specific information</div>');
+        $("#editing-metrics-link").data("title", '<div class="tooltip-text">more information about metrics for editing</div>');
+        $("#general-metrics-link").data("title", '<div class="tooltip-text">more information about general metrics</div>');
         var options = {
             trigger: 'hover',
             placement: 'top',
@@ -64,7 +83,9 @@ $(function(){
             delay: { show: 1000, hide: 100 },
             container: 'body'
         };
-        $(".metric").tooltip(options);
+        metricsElements.tooltip(options);
+        $("#editing-metrics-link").tooltip(options);
+        $("#general-metrics-link").tooltip(options);
 
         // create loading state spinner
         var spinnerOpts = {

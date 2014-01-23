@@ -37,7 +37,7 @@
                 <div id="spinner-container"> </div>
                 <div id="metrics-tables">
                     <button type="button" class="btn btn-default btn-lg btn-block" id="clean-text"><span class="glyphicon glyphicon-download"></span> Clean text formatting</button>
-                    <p class="text-large">Editing tools <a href="/metrics#editing-tools" target="_blank" class="metrics-info-link"><span class="glyphicon glyphicon-info-sign"></span></a></p>
+                    <p class="text-large">Metrics for editing <a href="/metrics#editing-metrics" target="_blank" class="metrics-info-link" id="editing-metrics-link"><span class="glyphicon glyphicon-info-sign"></span></a></p>
                     <table class="table table-bordered table-hover text-medium">
                         <tr> <td><span class="metric" data-metric="synonyms">synonyms</span></td> <td><span class="glyphicon glyphicon-ok-circle" id="synonyms-button"></span>
                                  <span> </span><span id="synonyms-hover-text">hover mouse over words in text to see synonyms</span></td> </tr>
@@ -56,16 +56,16 @@
                         <tr> <td>frequent bigrams</td> <td id="bigram-freq"></td> </tr>
                         <tr> <td>frequent trigrams</td> <td id="trigram-freq"></td> </tr>
                     </table>
-                    <p class="text-large">General metrics <a href="/metrics#general-metrics" target="_blank" class="metrics-info-link"><span class="glyphicon glyphicon-info-sign"></span></a></p>
+                    <p class="text-large">General metrics <a href="/metrics#general-metrics" target="_blank" class="metrics-info-link" id="general-metrics-link"><span class="glyphicon glyphicon-info-sign"></span></a></p>
                     <table class="table table-bordered table-hover text-medium">
                         <tr> <td>characters</td> <td id="character-count"></td> </tr>
                         <tr> <td>words</td> <td id="word-count"></td> </tr>
-                        <tr> <td>vocabulary size</td> <td id="vocabulary-size"></td> </tr>
+                        <tr> <td><span data-metric="vocabulary-size">vocabulary size</span></td> <td id="vocabulary-size"></td> </tr>
                         <tr> <td><span class="metric" data-metric="sents">sentences</span></td> <td id="sentence-count"></td> </tr>
                         <tr> <td>words per sentence</td> <td><span id="words-per-sentence"></span><span id="std-of-words-per-sentence"></span></td> </tr>
                         <tr> <td>syllables per word</td> <td id="syllables-per-word"></td> </tr>
                         <tr> <td>characters per word</td> <td id="characters-per-word"></td> </tr>
-                        <tr> <td>readability grade</td> <td id="readability"></td> </tr>
+                        <tr> <td><span data-metric="readability">readability grade</span></td> <td id="readability"></td> </tr>
                         <tr> <td><span class="metric" data-metric="nouns">nouns</span></td> <td id="noun-ratio"></td> </tr>
                         <tr> <td><span class="metric" data-metric="pronouns">pronouns</span></td> <td id="pronoun-ratio"></td> </tr>
                         <tr> <td><span class="metric" data-metric="verbs">verbs</span></td> <td id="verb-ratio"></td> </tr>
