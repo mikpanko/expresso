@@ -1,6 +1,4 @@
 Expresso
 ========
 
-Tool to analyze text style.
-
-Currently located at [expresso-app.herokuapp.com](http://expresso-app.herokuapp.com).
+Tool to analyze, edit and compare text styles in English - [expresso-app.org](http://expresso-app.org).
