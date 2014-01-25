@@ -73,12 +73,13 @@
 #text-entry {
     position: relative;
     margin-bottom: 50px;
-    min-height: 200px;
+    min-height: 215px;
     outline: none;
 }
 
 #text-placeholder {
     position: absolute;
+    min-height: 215px;
     left: 15px;
     top: 0;
     z-index: 10;
