@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, jsonify, g
 import os
-from peewee import *
+#from peewee import *
 from text_analysis import analyze_text
-from model import db_proxy, Text
-from datetime import datetime
+#from model import db_proxy, Text
+#from datetime import datetime
 
 app = Flask(__name__)
 app.config.update(**os.environ)
@@ -38,27 +38,27 @@ def about_route():
 def analyze():
     html = request.form.get('html', '')
     text, tokens, metrics = analyze_text(html)
-    Text.create(text=text, timestamp=datetime.now().replace(microsecond=0), **metrics)
+    #Text.create(text=text, timestamp=datetime.now().replace(microsecond=0), **metrics)
     return jsonify({'text': text, 'tokens': tokens, 'metrics': metrics})
 
 
-@app.before_request
-def before_request():
-    g.db = MySQLDatabase(app.config['DATABASE_NAME'],
-                         host=app.config['DATABASE_HOST'],
-                         port=int(app.config['DATABASE_PORT']),
-                         user=app.config['DATABASE_USER'],
-                         passwd=app.config['DATABASE_PASSWORD'])
-    db_proxy.initialize(g.db)
-    g.db.connect()
-    Text.create_table(fail_silently=True)
-
-
-@app.teardown_request
-def teardown_request(exception):
-    db = getattr(g, 'db', None)
-    if db is not None:
-        db.close()
+# @app.before_request
+# def before_request():
+#     g.db = MySQLDatabase(app.config['DATABASE_NAME'],
+#                          host=app.config['DATABASE_HOST'],
+#                          port=int(app.config['DATABASE_PORT']),
+#                          user=app.config['DATABASE_USER'],
+#                          passwd=app.config['DATABASE_PASSWORD'])
+#     db_proxy.initialize(g.db)
+#     g.db.connect()
+#     Text.create_table(fail_silently=True)
+#
+#
+# @app.teardown_request
+# def teardown_request(exception):
+#     db = getattr(g, 'db', None)
+#     if db is not None:
+#         db.close()
 
 
 if __name__ == '__main__':
