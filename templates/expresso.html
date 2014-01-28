@@ -14,12 +14,13 @@
         <div class="row">
             <div class="col-md-8 column-left">
                 <div class="text-large" id="text-entry" contenteditable="true"></div>
-                <div class="text-large" id="text-placeholder">
-                    <p>Write or paste some text here...<br><br><br><br>Expresso is a little tool to edit texts and improve your writing style. It will teach you to express yourself through writing more efficiently and help make your texts more readable, precise, and engaging. To learn more about Expresso:<br><br>- understand <a class="placeholder-link" href="/how-to-use">How to use</a><br><br>- learn about text style <a class="placeholder-link" href="/metrics">Metrics</a><br><br>- do a quick interface <a class="placeholder-link" href="/tutorial">Tutorial</a></p>
+                <div class="text-large" id="text-placeholder">Write or paste some text here...</div>
+                <div class="text-large" id="expresso-pitch">
+                    <p>Expresso is a little tool to edit texts and improve your writing style. It will teach you to express yourself through writing more efficiently and help make your texts more readable, precise, and engaging. To learn more about Expresso:<br><br>- understand <a class="placeholder-link" href="/how-to-use">How to use</a><br><br>- learn about text style <a class="placeholder-link" href="/metrics">Metrics</a><br><br>- do a quick interface <a class="placeholder-link" href="/tutorial">Tutorial</a></p>
                 </div>
             </div>
             <div class="col-md-4 column-right">
-                <button type="button" class="btn btn-primary btn-lg btn-block" data-loading-text="Analyzing..."
+                <button type="button" class="btn btn-primary btn-lg btn-block" data-empty-text="Enter text to analyze" data-loading-text="Analyzing..."
                         data-complete-text="Analysis complete" id="analyze-text"><span class="glyphicon glyphicon-search"></span> Analyze text</button>
                 <div id="spinner-container"> </div>
                 <div id="metrics-tables">
@@ -39,9 +40,9 @@
                         <tr> <td><span class="metric" data-metric="rare-words">rare words</span></td> <td id="rare-word-ratio"></td> </tr>
                         <tr> <td><span class="metric" data-metric="long-sents">extra long sentences</span></td> <td id="long-sentences-ratio"></td> </tr>
                         <tr> <td><span class="metric" data-metric="short-sents">extra short sentences</span></td> <td id="short-sentences-ratio"></td> </tr>
-                        <tr> <td>frequent words</td> <td id="word-freq"></td> </tr>
-                        <tr> <td>frequent bigrams</td> <td id="bigram-freq"></td> </tr>
-                        <tr> <td>frequent trigrams</td> <td id="trigram-freq"></td> </tr>
+                        <tr> <td>frequent words (stems)</td> <td id="word-freq"></td> </tr>
+                        <tr> <td>frequent bigrams (stems)</td> <td id="bigram-freq"></td> </tr>
+                        <tr> <td>frequent trigrams (stems)</td> <td id="trigram-freq"></td> </tr>
                     </table>
                     <p class="text-large">General metrics <a href="/metrics#general-metrics" target="_blank" class="metrics-info-link" id="general-metrics-link"><span class="glyphicon glyphicon-info-sign"></span></a></p>
                     <table class="table table-bordered table-hover text-medium">

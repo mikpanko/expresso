@@ -69,6 +69,7 @@ $(function(){
         $("[data-metric='stopwords']").data("title", '<div class="tooltip-text">most common words not carrying text specific information</div>');
         $("#editing-metrics-link").data("title", '<div class="tooltip-text">more information about metrics for editing</div>');
         $("#general-metrics-link").data("title", '<div class="tooltip-text">more information about general metrics</div>');
+        cleanTextButton.data("title", '<div class="tooltip-text">useful before copying edited text to paste elsewhere</div>');
         var options = {
             trigger: 'hover',
             placement: 'top',
@@ -79,6 +80,7 @@ $(function(){
         metricsElements.tooltip(options);
         $("#editing-metrics-link").tooltip(options);
         $("#general-metrics-link").tooltip(options);
+        cleanTextButton.tooltip(options);
 
         // create loading state spinner
         var spinnerOpts = {

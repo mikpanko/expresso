@@ -1,5 +1,4 @@
 .placeholder-link {
-    color: cadetblue;
     text-decoration: underline;
 }
 
@@ -72,19 +71,21 @@
 
 #text-entry {
     position: relative;
-    margin-bottom: 50px;
-    min-height: 215px;
+    margin-bottom: 20px;
+    min-height: 180px;
     outline: none;
 }
 
 #text-placeholder {
     position: absolute;
-    min-height: 215px;
     left: 15px;
     top: 0;
-    z-index: 10;
-    cursor: text;
+    z-index: -10;
     color: #b3b3b3;
+}
+
+#expresso-pitch {
+    margin-bottom: 20px;
 }
 
 #spinner-container {

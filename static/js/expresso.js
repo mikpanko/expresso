@@ -7,6 +7,7 @@ var modifiedText = false;
 var displaySynonyms = true;
 var textField = null;
 var textPlaceholder = null;
+var expressoPitch = null;
 var metricsTables = null;
 var metricsElements = null;
 var analyzeTextButton = null;
@@ -28,6 +29,7 @@ $(function(){
         // find important DOM elements for future use
         textField = $("#text-entry");
         textPlaceholder = $("#text-placeholder");
+        expressoPitch = $("#expresso-pitch");
         metricsTables = $("#metrics-tables");
         metricsElements = $("[data-metric]");
         analyzeTextButton = $("#analyze-text");
@@ -43,6 +45,12 @@ $(function(){
 
         // set navigation bar
         $(".navbar-all").removeClass("active");
+
+        // set analyze text button to empty mode
+        analyzeTextButton.button("empty");
+        setTimeout(function() {
+            analyzeTextButton.prop("disabled", true);
+        }, 10);
 
         // hide results table
         metricsTables.hide();
@@ -76,6 +84,7 @@ $(function(){
         $("[data-metric='stopwords']").data("title", '<div class="tooltip-text">most common words not carrying text specific information</div>');
         $("#editing-metrics-link").data("title", '<div class="tooltip-text">more information about metrics for editing</div>');
         $("#general-metrics-link").data("title", '<div class="tooltip-text">more information about general metrics</div>');
+        cleanTextButton.data("title", '<div class="tooltip-text">useful before copying edited text to paste elsewhere</div>');
         var options = {
             trigger: 'hover',
             placement: 'top',
@@ -86,6 +95,7 @@ $(function(){
         metricsElements.tooltip(options);
         $("#editing-metrics-link").tooltip(options);
         $("#general-metrics-link").tooltip(options);
+        cleanTextButton.tooltip(options);
 
         // create loading state spinner
         var spinnerOpts = {
@@ -126,17 +136,21 @@ $(function(){
             }
         });
 
-        // handle text placeholder behavior
-        textPlaceholder.on("click", function() {
-            textField.focus();
-        });
+        // handle text placeholder and related analyze text button behavior
         textField.on("input", function() {
             if (textField.text().length) {
                 textPlaceholder.hide();
+                expressoPitch.hide();
+                analyzeTextButton.button("reset");
             }
             else {
                 textPlaceholder.show();
+                expressoPitch.show();
                 textField.html("");
+                analyzeTextButton.button("empty");
+                setTimeout(function() {
+                    analyzeTextButton.prop("disabled", true);
+                }, 10);
             }
         });
 
@@ -151,7 +165,6 @@ $(function(){
         // reset text, tokens, and metrics when text is changed
         textField.on("input", function() {
             modifiedText = true;
-            analyzeTextButton.button("reset");
             $(".metric-active").each(function(idx, el) {
                 el = $(el);
                 var classes = el.attr("class");
@@ -180,7 +193,7 @@ $(function(){
 
             if (!hasValidCharacters) {
 
-                showAlert("Enter valid text to analyze.");
+                showAlert("Enter valid English text to analyze.");
 
             } else if (tooLong) {
 
@@ -249,7 +262,6 @@ $(function(){
                 removeMetricHighlighting(el);
             });
             setDisplaySynonyms(false);
-            textField.html(renderTokensToHtml());
             cleanTextButton.addClass("active");
         });
 
