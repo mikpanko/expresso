@@ -124,6 +124,8 @@ $(function(){
         // analyze text and display results
         analyzeTextButton.click(function() {
 
+            ga('send', 'event', 'analyze-tutorial-text', 'click');
+
             // get rid of active state on the analysis button
             analyzeTextButton.blur();
 

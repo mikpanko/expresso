@@ -156,6 +156,7 @@ $(function(){
 
         // strip format when pasting text into text entry field
         textField.on("paste", function() {
+            ga('send', 'event', 'text-field', 'paste');
             var el = $(this);
             setTimeout(function() {
                 el.html(cleanHtml(el.html()));
@@ -176,6 +177,9 @@ $(function(){
 
         // analyze text and display results
         analyzeTextButton.click(function() {
+            var startTime = null;
+            var endTime = null;
+            ga('send', 'event', 'analyze-text', 'click');
 
             // get rid of active state on the analysis button
             analyzeTextButton.blur();
@@ -193,10 +197,12 @@ $(function(){
 
             if (!hasValidCharacters) {
 
+                ga('send', 'event', 'analyze-text', 'invalid-text');
                 showAlert("Enter valid English text to analyze.");
 
             } else if (tooLong) {
 
+                ga('send', 'event', 'analyze-text', 'long-text');
                 showAlert("Can only analyze texts less than 5000 words long.");
 
             } else {
@@ -213,6 +219,7 @@ $(function(){
                 spinner.spin(document.getElementById("spinner-container"));
 
                 // send text to the server for analysis
+                startTime = new Date().getTime();
                 $.ajax({
                     type: "POST",
                     url: "/analyze-text",
@@ -223,6 +230,9 @@ $(function(){
                     success: function(result, textStatus, error) {
 
                         // success - display analysis results and add synonym tooltips
+                        endTime = new Date().getTime();
+                        ga('send', 'timing', 'analyze-text-ajax', 'success', startTime - endTime);
+                        ga('send', 'event', 'analyze-text', 'server-success');
                         text = result.text;
                         tokens = result.tokens;
                         metrics = result.metrics;
@@ -244,6 +254,9 @@ $(function(){
                     error: function(request, textStatus, error) {
 
                         // error - display a message
+                        endTime = new Date().getTime();
+                        ga('send', 'timing', 'analyze-text-ajax', 'error', startTime - endTime);
+                        ga('send', 'event', 'analyze-text', 'server-error');
                         showAlert("ERROR: Could not analyze text. The website might be overloaded due to high number of visitors. Please, wait couple minutes and try analyzing again.");
 
                         // reset UI
@@ -260,6 +273,8 @@ $(function(){
         // clean text formatting for copy-pasting
         cleanTextButton.click(function() {
 
+            ga('send', 'event', 'clean-text', 'click');
+
             // get rid of active state on the clean text button
             cleanTextButton.blur();
 
@@ -273,6 +288,7 @@ $(function(){
 
         // handle clicking on synonyms button
         displaySynonymsButton.click(function() {
+            ga('send', 'event', 'display-synonyms', 'click');
             if (displaySynonyms) {
                 setDisplaySynonyms(false);
             } else {
@@ -298,6 +314,7 @@ $(function(){
                     } else {
 
                         // add a highlight and synonym tooltips
+                        ga('send', 'event', 'metric', 'click', el.data("metric"));
                         var maskNum = activeTokenMasks.indexOf(false);
                         tokenMasks[maskNum] = makeTokenMask(el.data("metric"), el.data("metric-data"));
                         textField.html(renderTokensToHtml());
