@@ -179,6 +179,7 @@ $(function(){
         analyzeTextButton.click(function() {
             var startTime = null;
             var endTime = null;
+            var measuredTime = null;
             ga('send', 'event', 'analyze-text', 'click');
 
             // get rid of active state on the analysis button
@@ -231,7 +232,8 @@ $(function(){
 
                         // success - display analysis results and add synonym tooltips
                         endTime = new Date().getTime();
-                        ga('send', 'timing', 'analyze-text-ajax', 'success', startTime - endTime);
+                        measuredTime = endTime - startTime;
+                        ga('send', 'timing', 'analyze-text-ajax', 'success', measuredTime);
                         ga('send', 'event', 'analyze-text', 'server-success');
                         text = result.text;
                         tokens = result.tokens;
@@ -255,7 +257,8 @@ $(function(){
 
                         // error - display a message
                         endTime = new Date().getTime();
-                        ga('send', 'timing', 'analyze-text-ajax', 'error', startTime - endTime);
+                        measuredTime = endTime - startTime;
+                        ga('send', 'timing', 'analyze-text-ajax', 'error', measuredTime);
                         ga('send', 'event', 'analyze-text', 'server-error');
                         showAlert("ERROR: Could not analyze text. The website might be overloaded due to high number of visitors. Please, wait couple minutes and try analyzing again.");
 
