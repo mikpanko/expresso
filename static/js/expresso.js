@@ -244,7 +244,13 @@ $(function(){
                     error: function(request, textStatus, error) {
 
                         // error - display a message
-                        showAlert("Cannot analyze text: " + error);
+                        showAlert("ERROR: Could not analyze text. The website might be overloaded due to high number of visitors. Please, wait couple minutes and try analyzing again.");
+
+                        // reset UI
+                        spinner.stop();
+                        spinnerContainer.hide();
+                        analyzeTextButton.button("reset");
+
                     }
                 });
             }

@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, jsonify, g
 import os
-#from peewee import *
+from peewee import *
 from text_analysis import analyze_text
-#from model import db_proxy, Text
-#from datetime import datetime
+from model import db_proxy, Text
+from datetime import datetime
+from time import time
 
 app = Flask(__name__)
 app.config.update(**os.environ)
@@ -37,28 +38,33 @@ def about_route():
 @app.route('/analyze-text', methods=['POST'])
 def analyze():
     html = request.form.get('html', '')
+    analysis_start = time()
     text, tokens, metrics = analyze_text(html)
+    analysis_time = time() - analysis_start
     #Text.create(text=text, timestamp=datetime.now().replace(microsecond=0), **metrics)
+    Text.create(timestamp=datetime.now().replace(microsecond=0), analysis_time=analysis_time,
+                character_count=metrics['character_count'], word_count=metrics['word_count'],
+                sentence_count=metrics['sentence_count'])
     return jsonify({'text': text, 'tokens': tokens, 'metrics': metrics})
 
 
-# @app.before_request
-# def before_request():
-#     g.db = MySQLDatabase(app.config['DATABASE_NAME'],
-#                          host=app.config['DATABASE_HOST'],
-#                          port=int(app.config['DATABASE_PORT']),
-#                          user=app.config['DATABASE_USER'],
-#                          passwd=app.config['DATABASE_PASSWORD'])
-#     db_proxy.initialize(g.db)
-#     g.db.connect()
-#     Text.create_table(fail_silently=True)
-#
-#
-# @app.teardown_request
-# def teardown_request(exception):
-#     db = getattr(g, 'db', None)
-#     if db is not None:
-#         db.close()
+@app.before_request
+def before_request():
+    g.db = MySQLDatabase(app.config['DATABASE_NAME'],
+                         host=app.config['DATABASE_HOST'],
+                         port=int(app.config['DATABASE_PORT']),
+                         user=app.config['DATABASE_USER'],
+                         passwd=app.config['DATABASE_PASSWORD'])
+    db_proxy.initialize(g.db)
+    g.db.connect()
+    Text.create_table(fail_silently=True)
+
+
+@app.teardown_request
+def teardown_request(exception):
+    db = getattr(g, 'db', None)
+    if db is not None:
+        db.close()
 
 
 if __name__ == '__main__':
