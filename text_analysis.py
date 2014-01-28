@@ -18,6 +18,7 @@ empty_sent_re = re.compile('^[\n ]*$')
 nominalization_re = re.compile('(?:ion|ions|ism|isms|ty|ties|ment|ments|ness|nesses|ance|ances|ence|ences)$')
 stopset = set(nltk.corpus.stopwords.words('english'))
 stemmer = nltk.PorterStemmer()
+tagger = nltk.data.load(nltk.tag._POS_TAGGER)
 lemmatizer = nltk.WordNetLemmatizer()
 dict_cmu = nltk.corpus.cmudict.dict()
 dict_wn = nltk.corpus.wordnet
@@ -127,7 +128,7 @@ def analyze_text(html):
         data['stems'][word2token_map[idx]] = stem
 
     # tag tokens as part-of-speech
-    sents_tokens_tags = nltk.batch_pos_tag(sents_tokens)
+    sents_tokens_tags = tagger.batch_tag(sents_tokens)
     data['parts_of_speech'] = [pos for sent in sents_tokens_tags for (token, pos) in sent]
 
     # fix symbol and apostrophed verb tags
