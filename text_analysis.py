@@ -43,7 +43,7 @@ def stem_better(word):
     return stem
 
 
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpora/word-freq-coca')) as f:
+with open(os.path.join(os.environ.get('NLTK_DATA'), 'corpora/word-freq')) as f:
     dict_word_freq_lines = f.read().splitlines()
     dict_word_freq_draft = [line.split(',') for line in dict_word_freq_lines]
     dict_word_freq_draft = [(stem_better(word), float(freq)) for word, pos, freq in dict_word_freq_draft]

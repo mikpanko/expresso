@@ -1,7 +1,6 @@
 expresso-venv
+nltk_data
 .idea
 *.pyc
-.env
-.env-aws
-.env-local
+.env*
 .DS_Store
