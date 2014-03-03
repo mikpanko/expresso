@@ -22,6 +22,8 @@ tagger = nltk.data.load(nltk.tag._POS_TAGGER)
 lemmatizer = nltk.WordNetLemmatizer()
 dict_cmu = nltk.corpus.cmudict.dict()
 dict_wn = nltk.corpus.wordnet
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpora/vulgar-words')) as f:
+    dict_vulgar_words = f.read().splitlines()
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpora/weak-verbs')) as f:
     dict_weak_verbs = f.read().splitlines()
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpora/entity-substitutions')) as f:
@@ -197,7 +199,9 @@ def analyze_text(html):
                 pos = pos_map[data['parts_of_speech'][idx][:2]]
                 for synset in dict_wn.synsets(word):
                     if synset.pos in pos:
-                        synonyms.extend(synset.lemma_names)
+                        not_curse_word = [False if syn in dict_vulgar_words else True for syn in synset.lemma_names]
+                        if all(not_curse_word):
+                            synonyms.extend(synset.lemma_names)
                 synonyms = list(set(synonyms) - set([lemmatizer.lemmatize(word, pos=pos[0])]))
                 synonyms = [syn for syn in synonyms if ('_' not in syn)]
                 #syn_stems = [stem_better(syn) for syn in synonyms]
