@@ -1,6 +1,4 @@
-expresso-venv
+env
 nltk_data
-.idea
 *.pyc
-.env*
 .DS_Store
