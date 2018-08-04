@@ -61,7 +61,7 @@ $(function(){
         $("[data-metric='modals']").data("title", '<div class="tooltip-text">verb modifiers signifying ability or necessity</div>');
         $("[data-metric='rare-words']").data("title", '<div class="tooltip-text">not among 5000 most frequent English words</div>');
         $("[data-metric='sents']").data("title", '<div class="tooltip-text">highlighting of the first word in each sentence</div>');
-        $("[data-metric='vocabulary-size']").data("title", '<div class="tooltip-text">number of different word stems</div>');
+        $("[data-metric='vocabulary-size']").data("title", '<div class="tooltip-text">number of different word lemmas</div>');
         $("[data-metric='readability']").data("title", '<div class="tooltip-text">comprehension level corresponding to school grade</div>');
         $("[data-metric='declar-sents']").data("title", '<div class="tooltip-text">ending with "." or "..."</div>');
         $("[data-metric='inter-sents']").data("title", '<div class="tooltip-text">ending with "?"</div>');
@@ -383,7 +383,7 @@ $(function(){
             case "sents":
                 var currSent = 0;
                 for (var i=0; i<tokens.values.length; i++) {
-                    if ((tokens.sentence_numbers[i] > currSent) && (tokens.number_of_characters[i])) {
+                    if ((tokens.sentence_numbers[i] > currSent) && (tokens.numbers_of_characters[i])) {
                         mask.push(i);
                         currSent = tokens.sentence_numbers[i];
                     }
@@ -393,7 +393,7 @@ $(function(){
             case "long-sents":
                 var span = [0, null];
                 var wordCount = 0;
-                if (tokens.number_of_characters[0]) {
+                if (tokens.numbers_of_characters[0]) {
                     wordCount = 1;
                 }
                 for (var i=1; i<tokens.sentence_numbers.length; i++) {
@@ -405,7 +405,7 @@ $(function(){
                         span = [i, null];
                         wordCount = 0;
                     }
-                    if (tokens.number_of_characters[i]) {
+                    if (tokens.numbers_of_characters[i]) {
                             wordCount = wordCount + 1;
                     }
                 }
@@ -418,7 +418,7 @@ $(function(){
             case "short-sents":
                 var span = [0, null];
                 var wordCount = 0;
-                if (tokens.number_of_characters[0]) {
+                if (tokens.numbers_of_characters[0]) {
                     wordCount = 1;
                 }
                 for (var i=1; i<tokens.sentence_numbers.length; i++) {
@@ -430,7 +430,7 @@ $(function(){
                         span = [i, null];
                         wordCount = 0;
                     }
-                    if (tokens.number_of_characters[i]) {
+                    if (tokens.numbers_of_characters[i]) {
                             wordCount = wordCount + 1;
                     }
                 }
@@ -498,7 +498,7 @@ $(function(){
 
             case "other-pos":
                 for (var i=0; i<tokens.parts_of_speech.length; i++) {
-                    if ((tokens.number_of_characters[i]) &&
+                    if ((tokens.numbers_of_characters[i]) &&
                         (["NN", "PR", "WP", "VB", "JJ", "RB", "MD"].indexOf(tokens.parts_of_speech[i].slice(0, 2))==-1)) {
                         mask.push(i);
                     }
@@ -646,8 +646,8 @@ $(function(){
                 break;
 
             case "word-freq":
-                for (var i=0; i<tokens.stems.length; i++) {
-                    if (tokens.stems[i]==data) {
+                for (var i=0; i<tokens.lemmas.length; i++) {
+                    if (tokens.lemmas[i]==data) {
                         mask.push(i);
                     }
                 }
@@ -656,8 +656,8 @@ $(function(){
             case "bigram-freq":
                 var span = [0, 0];
                 var count = 0;
-                for (var i=0; i<tokens.stems.length; i++) {
-                    if ((count>0) && (tokens.stems[i]==data[count])) {
+                for (var i=0; i<tokens.lemmas.length; i++) {
+                    if ((count>0) && (tokens.lemmas[i]==data[count])) {
                         count = count + 1;
                         if (count==2) {
                             span[1] = i;
@@ -665,10 +665,10 @@ $(function(){
                             count = 0;
                             span = [0, 0];
                         }
-                    } else if (tokens.stems[i]==data[0]) {
+                    } else if (tokens.lemmas[i]==data[0]) {
                         count = 1;
                         span[0] = i;
-                    } else if (tokens.stems[i]) {
+                    } else if (tokens.lemmas[i]) {
                         count = 0;
                     }
                 }
@@ -677,8 +677,8 @@ $(function(){
             case "trigram-freq":
                 var span = [0, 0];
                 var count = 0;
-                for (var i=0; i<tokens.stems.length; i++) {
-                    if ((count>0) && (tokens.stems[i]==data[count])) {
+                for (var i=0; i<tokens.lemmas.length; i++) {
+                    if ((count>0) && (tokens.lemmas[i]==data[count])) {
                         count = count + 1;
                         if (count==3) {
                             span[1] = i;
@@ -686,10 +686,10 @@ $(function(){
                             count = 0;
                             span = [0, 0];
                         }
-                    } else if (tokens.stems[i]==data[0]) {
+                    } else if (tokens.lemmas[i]==data[0]) {
                         count = 1;
                         span[0] = i;
-                    } else if (tokens.stems[i]) {
+                    } else if (tokens.lemmas[i]) {
                         count = 0;
                     }
                 }
@@ -756,7 +756,7 @@ $(function(){
 
             // add token itself
             var tokenInText = null;
-            if (["``", "''"].indexOf(token)>=0) {
+            if (token=='"') {
 
                 // special handling of quotation marks
                 if ([34, 171, 187, 8220, 8221, 8222, 8223, 8243, 8246, 12317, 12318].indexOf(text.charCodeAt(idxText))>=0) {
@@ -780,6 +780,10 @@ $(function(){
                     console.log(text[idxText]);
                     console.log(text.charCodeAt(idxText));
                 }
+            } else if (token.charCodeAt(0)==10) {
+
+                // special handling of new line tokens
+                tokenInText = "";
             } else {
 
                 // all other tokens are displayed as is

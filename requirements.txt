@@ -9,3 +9,5 @@ itsdangerous==0.24
 nltk==3.3
 numpy==1.14.5
 wsgiref==0.1.2
+spacy==2.0.12
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.0.0/en_core_web_sm-2.0.0.tar.gz#en_core_web_sm
