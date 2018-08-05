@@ -201,7 +201,7 @@ $(function(){
           break;
         }
       }
-      var tooLong = (text.split(" ").length > 10000);
+      var tooLong = (text.split(" ").length > 5000);
 
       if (!hasValidCharacters) {
 
@@ -211,7 +211,7 @@ $(function(){
       } else if (tooLong) {
 
         ga('send', 'event', 'analyze-text', 'long-text');
-        showAlert("Can only analyze texts less than 10000 words long.");
+        showAlert("Can only analyze texts less than 5000 words long.");
 
       } else {
 

@@ -1,10 +1,9 @@
 from __future__ import division
 import os
+import cPickle as pickle
 import re
 from bs4 import BeautifulSoup
-import operator
 from numpy import std
-import nltk
 import spacy
 import time
 
@@ -15,10 +14,12 @@ html_newline_re = re.compile('(<br|</div|</p)')
 quotation_re = re.compile(u'[\u00AB\u00BB\u201C\u201D\u201E\u201F\u2033\u2036\u301D\u301E]')
 apostrophe_re = re.compile(u'[\u02BC\u2019\u2032]')
 nominalization_re = re.compile('(?:ion|ions|ism|isms|ty|ties|ment|ments|ness|nesses|ance|ances|ence|ences)$')
-dict_cmu = nltk.corpus.cmudict.dict()
-dict_wn = nltk.corpus.wordnet
-with open(os.path.join(os.environ.get('NLP_DATA'), 'vulgar-words')) as f:
-  dict_vulgar_words = f.read().splitlines()
+with open(os.path.join(os.environ.get('NLP_DATA'), 'synonyms.pkl')) as f:
+  dict_synonyms = pickle.load(f)
+with open(os.path.join(os.environ.get('NLP_DATA'), 'base-lemmas.pkl')) as f:
+  dict_base_lemmas = pickle.load(f)
+with open(os.path.join(os.environ.get('NLP_DATA'), 'phonemes.pkl')) as f:
+  dict_phonemes = pickle.load(f)
 with open(os.path.join(os.environ.get('NLP_DATA'), 'weak-verbs')) as f:
   dict_weak_verbs = f.read().splitlines()
 with open(os.path.join(os.environ.get('NLP_DATA'), 'entity-substitutions')) as f:
@@ -57,7 +58,7 @@ def analyze_text(html):
 
   # parse text
   doc = nlp(text)
-  print 'spacy code:'
+  print 'spaCy code:'
   print time.time()-start
   data['values'] = [token.text for token in doc]
   data['parts_of_speech'] = [token.tag_ for token in doc]
@@ -68,6 +69,8 @@ def analyze_text(html):
   data['whitespaces'] = [token.is_space for token in doc]
   data['numbers_of_characters'] = [len(token.text) if is_word(token) else None for token in doc]
   data['stopwords'] = [(token.lower_ in dict_stop_words) if is_word(token) else None for token in doc]
+  print 'filling in data based on spaCy:'
+  print time.time()-start
 
   # find sentences
   # need to manually merge some of sentences identified by spaCy to make sure all of them end with an appropriate punctuation mark
@@ -86,6 +89,8 @@ def analyze_text(html):
     sents.append(new_sent)
     sents_end_punct.append(None)
   data['sentence_numbers'] = [(idx+1) for idx, sent in enumerate(sents) for token in sent]
+  print 'sents code:'
+  print time.time()-start
 
   # find words
   words = []
@@ -94,20 +99,26 @@ def analyze_text(html):
     if data['words'][idx]:
       words.append(token.lower_)
       word2token_map.append(idx)
+  print 'words code:'
+  print time.time()-start
 
   # find lemmas and fix pronouns
   data['lemmas'] = [token.lemma_ if is_word(token) else None for token in doc]
   for idx, lemma in enumerate(data['lemmas']):
     if lemma == '-PRON-': # spaCy replaces pronouns with '-PRON-' so we need to fix it
       data['lemmas'][idx] = data['values'][idx].lower()
+  print 'lemmas code:'
+  print time.time()-start
 
   # find expected word frequencies
   data['expected_word_frequencies'] = [0 if is_word(token) else None for token in doc]
   for idx_word, word in enumerate(words):
     idx = word2token_map[idx_word]
     lemma = data['lemmas'][idx]
-    if lemma in dict_word_freq.keys():
+    if lemma in dict_word_freq:
       data['expected_word_frequencies'][idx] = dict_word_freq[lemma]
+  print 'word freq code:'
+  print time.time()-start
 
   # find groups of verbs making up predicates & auxiliary verbs within them
   data['verb_groups'] = [None] * len(doc)
@@ -138,37 +149,25 @@ def analyze_text(html):
         for j in verb_group_stack[:-1]:
           data['auxiliary_verbs'][j] = True
       verb_group_stack = []
-
-  # find synonyms and related lemmas
-  print 'main data parsing:'
+  print 'verb group code:'
   print time.time()-start
+
+  # find synonyms and base lemmas
   data['synonyms'] = [None] * len(doc)
-  data['related_lemmas'] = [None] * len(doc)
+  data['base_lemmas'] = [None] * len(doc)
+  pos_map = {'NN': 'nouns', 'JJ': 'adjectives', 'VB': 'verbs', 'RB': 'adverbs'}
   for idx_word, word in enumerate(words):
     idx = word2token_map[idx_word]
-    synonyms = []
-    related_lemmas = []
-    lemma = data['lemmas'][idx]
-    pos_map = {'NN': ['n'], 'JJ': ['a', 's'], 'VB': ['v'], 'RB': ['r']}
-    if data['parts_of_speech'][idx][:2] in pos_map.keys():
-      if data['values'][idx][0].islower() or (idx == 0) or ((idx > 0) and
-                                          (data['values'][idx-1] in ['.', '?', '!', '"', '``', '(', '[', '{'])):
-        pos = pos_map[data['parts_of_speech'][idx][:2]]
-        synsets = dict_wn.synsets(word, pos=pos)
-        for synset in synsets:
-          not_curse_word = [False if syn in dict_vulgar_words else True for syn in synset.lemma_names()]
-          if all(not_curse_word):
-            synonyms.extend(synset.lemma_names())
-          for lm in synset.lemmas():
-            if lm.name() == lemma:
-              for l in lm.derivationally_related_forms():
-                related_lemmas.append(l.name())
-        synonyms = list(set(synonyms) - set([lemma]))
-        synonyms = [syn for syn in synonyms if ('_' not in syn)]
-        # related_lemmas = [lm for lm in related_lemmas if ('_' not in lm)]
-    data['synonyms'][idx] = synonyms
-    data['related_lemmas'][idx] = list(set(related_lemmas).union(set([lemma])))
-  print 'synonyms & related lemmas:'
+    pos = data['parts_of_speech'][idx][:2]
+    if (pos in pos_map) and (word in dict_synonyms[pos_map[pos]]):
+      data['synonyms'][idx] = dict_synonyms[pos_map[pos]][word]
+    else:
+      data['synonyms'][idx] = []
+    if data['lemmas'][idx] in dict_base_lemmas:
+      data['base_lemmas'][idx] = dict_base_lemmas[data['lemmas'][idx]]
+    else:
+      data['base_lemmas'][idx] = data['lemmas'][idx]
+  print 'synonyms & base lemmas:'
   print time.time()-start
 
   ### compute metrics on parsed data
@@ -210,21 +209,25 @@ def analyze_text(html):
       metrics['exclamative_ratio'] = sents_end_punct.count('!') / metrics['sentence_count']
   else:
       metrics['declarative_ratio'] = metrics['interrogative_ratio'] = metrics['exclamative_ratio'] = 0
+  print 'first metrics:'
+  print time.time()-start
 
   # count number of syllables per word
   cmu_words_count = 0
   cmu_syllables_count = 0
   data['numbers_of_syllables'] = [0 if is_word(token) else None for token in doc]
   for idx, word in enumerate(words):
-    if word in dict_cmu:
+    if word in dict_phonemes:
       cmu_words_count += 1
-      syll_num = len([phoneme for phoneme in dict_cmu[word][0] if phoneme[-1].isdigit()])
+      syll_num = len([phoneme for phoneme in dict_phonemes[word] if phoneme[-1].isdigit()])
       cmu_syllables_count += syll_num
       data['numbers_of_syllables'][word2token_map[idx]] = syll_num
   if cmu_words_count:
     metrics['syllables_per_word'] = cmu_syllables_count / cmu_words_count
   else:
     metrics['syllables_per_word'] = 0
+  print '# of syllables metrics:'
+  print time.time()-start
 
   # count number of characters in the whole text
   metrics['character_count'] = len(text)
@@ -247,6 +250,8 @@ def analyze_text(html):
       metrics['readability'] = 0.39 * metrics['words_per_sentence'] + 11.8 * metrics['syllables_per_word'] - 15.59
   else:
       metrics['readability'] = 0
+  print 'more metrics:'
+  print time.time()-start
 
   # count number of different parts of speech
   noun_count = 0
@@ -283,6 +288,8 @@ def analyze_text(html):
       metrics['adjective_ratio'] = 0
       metrics['adverb_ratio'] = 0
       metrics['other_pos_ratio'] = 0
+  print 'pos metrics:'
+  print time.time()-start
 
   # count number of modals
   modal_count = data['parts_of_speech'].count('MD')
@@ -326,6 +333,8 @@ def analyze_text(html):
       metrics['filler_ratio'] = data['filler_words'].count(True) / len(words)
   else:
       metrics['filler_ratio'] = 0
+  print 'nomin/weak/subst/filler metrics:'
+  print time.time()-start
 
   # find and count negations
   data['negations'] = [False if is_word(token) else None for token in doc]
@@ -333,9 +342,9 @@ def analyze_text(html):
     idx = word2token_map[idx_word]
     if word in ["not", "n't", "no", "neither", "nor", "nothing", "nobody", "nowhere", "never"]:
       data['negations'][idx] = True
-    elif (word[:2] == 'un') and (word[2:] in dict_cmu) and (data['lemmas'][idx] not in ['unit', 'under', 'union']):
+    elif (word[:2] == 'un') and (word[2:] in dict_phonemes) and (data['lemmas'][idx] not in ['unit', 'under', 'union']):
       data['negations'][idx] = True
-    elif (word[:3] == 'mis') and (word[3:] in dict_cmu) and (data['lemmas'][idx] != 'miss'):
+    elif (word[:3] == 'mis') and (word[3:] in dict_phonemes) and (data['lemmas'][idx] != 'miss'):
       data['negations'][idx] = True
   if metrics['sentence_count']:
     metrics['negation_ratio'] = data['negations'].count(True) / metrics['sentence_count']
@@ -391,44 +400,71 @@ def analyze_text(html):
       metrics['rare_word_ratio'] = data['expected_word_frequencies'].count(0) / len(words)
   else:
       metrics['rare_word_ratio'] = 0
-
-  print 'main metrics:'
+  print 'negations / noun clusters / passive metrics:'
   print time.time()-start
 
   # count word, bigram, and trigram frequencies
-  bcf = nltk.TrigramCollocationFinder.from_words(data['lemmas'])
-  word_freq = bcf.word_fd
-  bigram_freq = bcf.bigram_fd
-  trigram_freq = bcf.ngram_fd
-
-  # sort and filter word frequencies
-  sorted_word_freq = sorted(word_freq.iteritems(), key=operator.itemgetter(1))
-  sorted_word_freq.reverse()
-  sorted_word_freq = [word for word in sorted_word_freq if (word[1] > 1) and (word[0] not in dict_stop_words)]
-  if sorted_word_freq:
-      metrics['word_freq'] = sorted_word_freq
+  word_freq = {}
+  bigram_freq = {}
+  trigram_freq = {}
+  lemmas = [data['lemmas'][i] for i in word2token_map]
+  for idx, word in enumerate(lemmas[:-2]):
+    if word in word_freq:
+      word_freq[word] += 1
+    else:
+      word_freq[word] = 1
+    mask = word + ',' + lemmas[idx+1]
+    if mask in bigram_freq:
+      bigram_freq[mask] += 1
+    else:
+      bigram_freq[mask] = 1
+    mask = word + ',' + lemmas[idx+1] + ',' + lemmas[idx+2]
+    if mask in trigram_freq:
+      trigram_freq[mask] += 1
+    else:
+      trigram_freq[mask] = 1
+  if lemmas[-2] in word_freq:
+    word_freq[lemmas[-2]] += 1
   else:
-      metrics['word_freq'] = []
-
-  # sort and filter bigram frequencies
-  sorted_bigram_freq = sorted(bigram_freq.iteritems(), key=operator.itemgetter(1))
-  sorted_bigram_freq.reverse()
-  sorted_bigram_freq = [bigram for bigram in sorted_bigram_freq if
-                        (bigram[1] > 1) and (bigram[0][0] not in dict_stop_words) and (bigram[0][1] not in dict_stop_words)]
-  if sorted_bigram_freq:
-      metrics['bigram_freq'] = sorted_bigram_freq
+    word_freq[lemmas[-2]] = 1
+  if lemmas[-1] in word_freq:
+    word_freq[lemmas[-1]] += 1
   else:
-      metrics['bigram_freq'] = []
-
-  # sort and filter trigram frequencies
-  sorted_trigram_freq = sorted(trigram_freq.iteritems(), key=operator.itemgetter(1))
-  sorted_trigram_freq.reverse()
-  sorted_trigram_freq = [trigram for trigram in sorted_trigram_freq if trigram[1] > 1]
-  if sorted_trigram_freq:
-      metrics['trigram_freq'] = sorted_trigram_freq
+    word_freq[lemmas[-1]] = 1
+  mask = lemmas[-2] + ',' + lemmas[-1]
+  if mask in bigram_freq:
+    bigram_freq[mask] += 1
   else:
-      metrics['trigram_freq'] = []
-
+    bigram_freq[mask] = 1
+  word_freq_list = []
+  for word, freq in word_freq.iteritems():
+    if (freq > 1) and (word not in dict_stop_words):
+      word_freq_list.append([word, freq])
+  word_freq_list.sort(reverse=True, key=lambda x: x[1])
+  if word_freq_list:
+    metrics['word_freq'] = word_freq_list
+  else:
+    metrics['word_freq'] = []
+  bigram_freq_list = []
+  for mask, freq in bigram_freq.iteritems():
+    w1, w2 = mask.split(',')
+    if (freq > 1) and (w1 not in dict_stop_words) and (w2 not in dict_stop_words):
+      bigram_freq_list.append([[w1, w2], freq])
+  bigram_freq_list.sort(reverse=True, key=lambda x: x[1])
+  if bigram_freq_list:
+    metrics['bigram_freq'] = bigram_freq_list
+  else:
+    metrics['bigram_freq'] = []
+  trigram_freq_list = []
+  for mask, freq in trigram_freq.iteritems():
+    w1, w2, w3 = mask.split(',')
+    if (freq > 1):
+      trigram_freq_list.append([[w1, w2, w3], freq])
+  trigram_freq_list.sort(reverse=True, key=lambda x: x[1])
+  if trigram_freq_list:
+    metrics['trigram_freq'] = trigram_freq_list
+  else:
+    metrics['trigram_freq'] = []
   print 'bigrams/trigrams:'
   print time.time()-start
 
