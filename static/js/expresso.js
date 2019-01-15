@@ -72,6 +72,7 @@ $(function(){
     $("[data-metric='noun-clusters']").data("title", '<div class="tooltip-text">three or more consecutive nouns (and, possibly, "of")</div>');
     $("[data-metric='long-sents']").data("title", '<div class="tooltip-text">&ge;40 words</div>');
     $("[data-metric='short-sents']").data("title", '<div class="tooltip-text">&le;6 words</div>');
+    $("[data-metric='fragment']").data("title", '<div class="tooltip-text">incomplete sentences without a predicate</div>');
     $("[data-metric='entity-substitutions']").data("title", '<div class="tooltip-text">pronouns and vague determiners</div>');
     $("[data-metric='modals']").data("title", '<div class="tooltip-text">verb modifiers signifying ability or necessity</div>');
     $("[data-metric='rare-words']").data("title", '<div class="tooltip-text">not among 5000 most frequent English words</div>');
@@ -416,6 +417,11 @@ $(function(){
     $("#declarative-ratio").text((Math.round(metrics.declarative_ratio * 1000) / 10).toString() + "%");
     $("#interrogative-ratio").text((Math.round(metrics.interrogative_ratio * 1000) / 10).toString() + "%");
     $("#exclamative-ratio").text((Math.round(metrics.exclamative_ratio * 1000) / 10).toString() + "%");
+    $("#fragment-ratio").text((Math.round(metrics.fragment_ratio * 1000) / 10).toString() + "%");
+    $("#simple-ratio").text((Math.round(metrics.simple_ratio * 1000) / 10).toString() + "%");
+    $("#complex-ratio").text((Math.round(metrics.complex_ratio * 1000) / 10).toString() + "%");
+    $("#compound-ratio").text((Math.round(metrics.compound_ratio * 1000) / 10).toString() + "%");
+    $("#complex-compound-ratio").text((Math.round(metrics.complex_compound_ratio * 1000) / 10).toString() + "%");
     $("#stopword-ratio").text((Math.round(metrics.stopword_ratio * 1000) / 10).toString() + "%");
     if (metrics.syllables_per_word > 0) {
       $("#syllables-per-word").text((Math.round(metrics.syllables_per_word * 10) / 10).toString());
@@ -435,6 +441,8 @@ $(function(){
     $("#adverb-ratio").text((Math.round(metrics.adverb_ratio * 1000) / 10).toString() + "%");
     $("#modal-ratio").text((Math.round(metrics.modal_ratio * 1000) / 10).toString() + "%");
     $("#other-pos-ratio").text((Math.round(metrics.other_pos_ratio * 1000) / 10).toString() + "%");
+    $("#subjects-per-sentence").text((Math.round(metrics.subjects_per_sentence * 10) / 10).toString());
+    $("#predicates-per-sentence").text((Math.round(metrics.predicates_per_sentence * 10) / 10).toString());
     $("#nominalization-ratio").text((Math.round(metrics.nominalization_ratio * 1000) / 10).toString() + "%");
     $("#weak-verb-ratio").text((Math.round(metrics.weak_verb_ratio * 1000) / 10).toString() + "%");
     $("#entity-substitution-ratio").text((Math.round(metrics.entity_substitution_ratio * 1000) / 10).toString() + "%");
@@ -614,6 +622,22 @@ $(function(){
       }
       break;
 
+      case "subjects":
+      for (var i=0; i<tokens.syntax_relations.length; i++) {
+        if (["nsubj", "nsubjpass"].indexOf(tokens.syntax_relations[i])>-1) {
+          mask.push(i);
+        }
+      }
+      break;
+
+      case "predicates":
+      for (var i=0; i<tokens.syntax_relations.length; i++) {
+        if (["ROOT", "csubj", "ccomp", "advcl", "relcl"].indexOf(tokens.syntax_relations[i])>-1) {
+          mask.push(i);
+        }
+      }
+      break;
+
       case "declar-sents":
       var span = [0, null];
       var validSent = ([".", "..."].indexOf(tokens.sentence_end_punctuations[0])>=0);
@@ -663,6 +687,29 @@ $(function(){
           }
           span = [i, null];
           validSent = (tokens.sentence_end_punctuations[i]=="!");
+        }
+      }
+      span[1] = tokens.sentence_numbers.length - 1;
+      if (validSent) {
+        mask.push(span);
+      }
+      break;
+
+      case "fragment":
+      case "simple":
+      case "complex":
+      case "compound":
+      case "complex-compound":
+      var span = [0, null];
+      var validSent = (tokens.sentence_types[0]==metric);
+      for (var i=1; i<tokens.sentence_numbers.length; i++) {
+        if (tokens.sentence_numbers[i] != tokens.sentence_numbers[i-1]) {
+          span[1] = i - 1;
+          if (validSent) {
+            mask.push(span);
+          }
+          span = [i, null];
+          validSent = (tokens.sentence_types[i]==metric);
         }
       }
       span[1] = tokens.sentence_numbers.length - 1;
