@@ -25,7 +25,7 @@ for idx, word in enumerate(words):
     related_words = list(set([lm.name().lower() for lm in related_lemmas]))
     related_words_len = [len(w) for w in related_words]
     base_lemma = related_words[related_words_len.index(min(related_words_len))]
-    base_lemmas.update({word: base_lemma for word in related_words})
+    base_lemmas.update({word: base_lemma for word in related_words if (word != base_lemma)})
 print 'created dictionary of base lemmas.'
 print time.time()-start
 print ' '

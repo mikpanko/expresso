@@ -35,8 +35,6 @@ def is_word(token):
   return token.text[0].isalnum() or (token.pos_ in ['VERB', 'PRON'])  # sometimes words are shortened to non-alnum strings like "'s"
 
 def analyze_text(html):
-  start = time.time()
-
   # create data and metrics dictionaries
   data = dict()
   metrics = dict()
@@ -62,7 +60,6 @@ def analyze_text(html):
   data['syntax_relations'] = [token.dep_ for token in doc]
   data['words'] = [is_word(token) for token in doc]
   data['punctuation_marks'] = [token.is_punct for token in doc]
-  data['whitespaces'] = [token.is_space for token in doc]
   data['numbers_of_characters'] = [len(token.text) if is_word(token) else None for token in doc]
   data['stopwords'] = [(token.lower_ in dict_stop_words) if is_word(token) else None for token in doc]
 
@@ -88,41 +85,45 @@ def analyze_text(html):
   data['sentence_numbers'] = [(idx+1) for idx, sent in enumerate(sents) for token in sent]
   data['sentence_end_punctuations'] = [sents_end_punct[idx] for idx, sent in enumerate(sents) for token in sent]
 
-  # find sentence types based on clause structure
-  sents_type = ['simple'] * len(sents)
+  # find subjects, predicates, clauses and sentence types based on syntactic structure
+  data['principal_parts'] = [None] * len(doc)
+  data['independent_principal_parts'] = [None] * len(doc)
+  sents_types = ['simple'] * len(sents)
+  sents_clauses = [0] * len(sents)
+  subj_tags = ['nsubj', 'nsubjpass', 'expl']
   for idx, sent in enumerate(sents):
-    roots = [token for token in sent if (token.dep_ == 'ROOT') and (token.pos_ == 'VERB') \
-            or ((token.dep_ == 'ccomp') and (token.head.dep_ == 'ROOT') and (token.head.pos_ != 'VERB'))]  # special handling of references
-    subjs = [token for token in sent if (token.dep_ in ['nsubj', 'csubj'])]
-    csubjs = [token for token in sent if (token.dep_ == 'csubj')]
-    deps = [token for token in sent if (token.dep_ in ['ccomp', 'advcl', 'relcl'])]
-    conjs = [token for token in sent if (token.dep_ == 'conj')]
+    is_compound = False
+    is_complex = False
+    roots = [token for token in sent if (token.dep_ == 'ROOT') and (token.pos_ == 'VERB')]
     if len(roots) is 0:
-      sents_type[idx] = 'fragment'
-    else:
-      is_compound = False
-      is_complex = False
-      if len(roots) > 1:
-        is_compound = True
-      for tk in deps:
-        if (tk.head not in conjs):
-          is_complex = True
-          break
-      for tk in csubjs:
-        if (tk.head.head in roots) or (tk.head.head in deps) or (tk.head.head in csubjs):
-          is_complex = True
-          break
-      for tk in subjs:
-        if (tk.head in conjs) and ((tk.head.head in roots) or (tk.head.head in deps)):
+      sents_types[idx] = 'fragment'
+      sents_clauses[idx] = 1
+      continue
+    for root in roots:
+      data['independent_principal_parts'][root.i] = 'predicate'
+      data['principal_parts'][root.i] = 'predicate'
+      sents_clauses[idx] += 1
+    for subj in [token for token in sent if (token.dep_ in subj_tags) and (token.head.pos_ == 'VERB')]:
+      data['principal_parts'][subj.i] = 'subject'
+      if subj.head.dep_ == 'ROOT':
+        data['independent_principal_parts'][subj.i] = 'subject'
+      else:
+        data['principal_parts'][subj.head.i] = 'predicate'
+        sents_clauses[idx] += 1
+        if subj.head.dep_ in ['parataxis', 'conj']:
           is_compound = True
-          break
-      if is_complex and is_compound:
-        sents_type[idx] = 'complex-compound'
-      elif is_compound:
-        sents_type[idx] = 'compound'
-      elif is_complex:
-        sents_type[idx] = 'complex'
-  data['sentence_types'] = [sents_type[idx] for idx, sent in enumerate(sents) for token in sent]
+        else:
+          is_complex = True
+    for conj in [token for token in sent if (token.dep_ == 'conj') and not data['principal_parts'][token.i]]:
+        data['principal_parts'][conj.i] = data['principal_parts'][conj.head.i]
+        data['independent_principal_parts'][conj.i] = data['independent_principal_parts'][conj.head.i]
+    if is_complex and is_compound:
+      sents_types[idx] = 'complex-compound'
+    elif is_compound:
+      sents_types[idx] = 'compound'
+    elif is_complex:
+      sents_types[idx] = 'complex'
+  data['sentence_types'] = [sents_types[idx] for idx, sent in enumerate(sents) for token in sent]
 
   # find words
   words = []
@@ -132,25 +133,11 @@ def analyze_text(html):
       words.append(token.lower_)
       word2token_map.append(idx)
 
-  # find lemmas and fix pronouns
+  # find lemmas
   data['lemmas'] = [token.lemma_ if is_word(token) else None for token in doc]
   for idx, lemma in enumerate(data['lemmas']):
     if lemma == '-PRON-': # spaCy replaces pronouns with '-PRON-' so we need to fix it
       data['lemmas'][idx] = data['values'][idx].lower()
-
-  # find distance of subjects and predicates to the beginning of sentences
-  data['subject_distances'] = [None] * len(doc)
-  data['predicate_distances'] = [None] * len(doc)
-  for idx, sent in enumerate(sents):
-    roots = [token for token in sent if ((token.dep_ == 'ROOT') and (token.pos_ == 'VERB')) \
-              or ((token.dep_ == 'ccomp') and (token.head.dep_ == 'ROOT') and (token.head.pos_ != 'VERB'))]  # special handling of references
-    if roots:
-      root = roots[0]
-      data['predicate_distances'][root.i] = root.i - sents_start_idx[idx]
-      subjs = [token for token in sent if (token.dep_ in ['nsubj', 'csubj']) and (token.head == root)]
-      if subjs:
-        subj = subjs[0]
-        data['subject_distances'][subj.i] = subj.i - sents_start_idx[idx]
 
   # find groups of verbs making up predicates & auxiliary verbs within them
   data['verb_groups'] = [None] * len(doc)
@@ -202,9 +189,12 @@ def analyze_text(html):
   data['expected_word_frequencies'] = [0 if is_word(token) else None for token in doc]
   for idx_word, word in enumerate(words):
     idx = word2token_map[idx_word]
-    lemma = data['base_lemmas'][idx]
+    lemma = data['lemmas'][idx]
+    base_lemma = data['base_lemmas'][idx]
     if lemma in dict_word_freq:
       data['expected_word_frequencies'][idx] = dict_word_freq[lemma]
+    elif base_lemma in dict_word_freq:
+      data['expected_word_frequencies'][idx] = dict_word_freq[base_lemma]
 
   ### compute metrics on parsed data
 
@@ -235,7 +225,7 @@ def analyze_text(html):
     metrics['short_sentences_ratio'] = 0
 
   # find vocabulary size
-  metrics['vocabulary_size'] = len(set(data['lemmas'])) - 1  # subtract 1 for non-words
+  metrics['vocabulary_size'] = len(set(data['base_lemmas'])) - 1  # subtract 1 for non-words
 
   # count sentence types based on ending punctuation mark
   if metrics['sentence_count']:
@@ -249,17 +239,63 @@ def analyze_text(html):
 
   # count sentence types based on clause structure
   if metrics['sentence_count']:
-    metrics['simple_ratio'] = sents_type.count('simple') / metrics['sentence_count']
-    metrics['fragment_ratio'] = sents_type.count('fragment') / metrics['sentence_count']
-    metrics['complex_ratio'] = sents_type.count('complex') / metrics['sentence_count']
-    metrics['compound_ratio'] = sents_type.count('compound') / metrics['sentence_count']
-    metrics['complex_compound_ratio'] = sents_type.count('complex-compound') / metrics['sentence_count']
+    metrics['simple_ratio'] = sents_types.count('simple') / metrics['sentence_count']
+    metrics['fragment_ratio'] = sents_types.count('fragment') / metrics['sentence_count']
+    metrics['complex_ratio'] = sents_types.count('complex') / metrics['sentence_count']
+    metrics['compound_ratio'] = sents_types.count('compound') / metrics['sentence_count']
+    metrics['complex_compound_ratio'] = sents_types.count('complex-compound') / metrics['sentence_count']
   else:
     metrics['simple_ratio'] = 0
     metrics['fragment_ratio'] = 0
     metrics['complex_ratio'] = 0
     metrics['compound_ratio'] = 0
     metrics['complex_compound_ratio'] = 0
+
+  # compute subject-, predicate- and clause-related metrics
+  data['clause_heavy_sentences'] = [False] * len(doc)
+  sents_predicate_depth = [0] * len(sents)
+  data['late_predicates'] = [False] * len(doc)
+  data['detached_subjects'] = [False] * len(doc)
+  metrics['many_clauses_ratio'] = 0
+  metrics['late_predicates_ratio'] = 0
+  metrics['detached_subjects_ratio'] = 0
+  sents_with_predicate_count = 0
+  for idx, sent in enumerate(sents):
+    s1 = sents_start_idx[idx]
+    s2 = sents_start_idx[idx]+len(sent)
+    syntax_mask = data['independent_principal_parts'][s1:s2]
+    if 'predicate' in syntax_mask:
+      pred_idx = syntax_mask.index('predicate')
+      pred_depth = sum([1 for token in sent[:pred_idx] if is_word(token)]) + 1
+      sents_with_predicate_count += 1
+    else:
+      continue
+    sents_predicate_depth[idx] = pred_depth
+    if sents_clauses[idx] >= 4:
+      data['clause_heavy_sentences'][s1:s2] = [(i != None) for i in data['principal_parts'][s1:s2]]
+      metrics['many_clauses_ratio'] += 1
+    if pred_depth > 10:
+      data['late_predicates'][sents_start_idx[idx]+pred_idx] = True
+      metrics['late_predicates_ratio'] += 1
+    if 'subject' in syntax_mask:
+      subj_idx = syntax_mask.index('subject')
+      subj_depth = sum([1 for token in sent[:subj_idx] if is_word(token)])
+      if (pred_depth - subj_depth > 5):
+        data['detached_subjects'][sents_start_idx[idx]+pred_idx] = True
+        data['detached_subjects'][sents_start_idx[idx]+subj_idx] = True
+        metrics['detached_subjects_ratio'] += 1
+  if sents_with_predicate_count:
+    metrics['predicate_depth'] = sum(sents_predicate_depth) / sents_with_predicate_count
+    metrics['late_predicates_ratio'] = metrics['late_predicates_ratio'] / sents_with_predicate_count
+    metrics['detached_subjects_ratio'] = metrics['detached_subjects_ratio'] / sents_with_predicate_count
+  else:
+    metrics['predicate_depth'] = 0
+  if metrics['sentence_count']:
+    metrics['clauses_per_sentence'] = sum(sents_clauses) / metrics['sentence_count']
+    metrics['many_clauses_ratio'] = metrics['many_clauses_ratio'] / metrics['sentence_count']
+  else:
+    metrics['clauses_per_sentence'] = 0
+    metrics['many_clauses_ratio'] = 0
 
   # count number of syllables per word
   cmu_words_count = 0
@@ -334,21 +370,6 @@ def analyze_text(html):
     metrics['adverb_ratio'] = 0
     metrics['other_pos_ratio'] = 0
 
-  # count number of subjects and predicates
-  subject_count = 0
-  predicate_count = 0
-  for rel in data['syntax_relations']:
-    if rel in ['nsubj', 'nsubjpass']:
-      subject_count += 1
-    elif rel in ['ROOT', 'csubj', 'ccomp', 'advcl', 'relcl']:
-      predicate_count += 1
-  if metrics['sentence_count']:
-    metrics['subjects_per_sentence'] = subject_count / metrics['sentence_count']
-    metrics['predicates_per_sentence'] = pronoun_count / metrics['sentence_count']
-  else:
-    metrics['subjects_per_sentence'] = 0
-    metrics['predicates_per_sentence'] = 0
-
   # count number of modals
   modal_count = data['parts_of_speech'].count('MD')
   if metrics['word_count']:
@@ -365,7 +386,7 @@ def analyze_text(html):
     idx = word2token_map[idx_word]
     data['nominalizations'][idx] = (data['numbers_of_characters'][idx] > 7) and (data['pos_high_level'][idx] != 'PROPN')\
                                     and (nominalization_re.search(word) is not None)
-    data['weak_verbs'][idx] = (data['pos_high_level'][idx] == 'VERB') and (data['lemmas'][idx] in dict_weak_verbs)
+    data['weak_verbs'][idx] = (data['pos_high_level'][idx] == 'VERB') and (data['base_lemmas'][idx] in dict_weak_verbs)
     if data['weak_verbs'][idx] and data['auxiliary_verbs'][idx]:
       data['weak_verbs'][idx] = False
     data['entity_substitutions'][idx] = (word in dict_entity_substitutions) and (not data['values'][idx].isupper() or (word == 'i'))
@@ -397,9 +418,9 @@ def analyze_text(html):
     idx = word2token_map[idx_word]
     if word in ["not", "n't", "no", "neither", "nor", "nothing", "nobody", "nowhere", "never"]:
       data['negations'][idx] = True
-    elif (word[:2] == 'un') and (word[2:] in dict_phonemes) and (data['lemmas'][idx] not in ['unit', 'under', 'union']):
+    elif (word[:2] == 'un') and (word[2:] in dict_phonemes) and (data['base_lemmas'][idx] not in ['unit', 'under', 'union', 'until']):
       data['negations'][idx] = True
-    elif (word[:3] == 'mis') and (word[3:] in dict_phonemes) and (data['lemmas'][idx] != 'miss'):
+    elif (word[:3] == 'mis') and (word[3:] in dict_phonemes) and (data['base_lemmas'][idx] != 'miss'):
       data['negations'][idx] = True
   if metrics['sentence_count']:
     metrics['negation_ratio'] = data['negations'].count(True) / metrics['sentence_count']
@@ -433,6 +454,23 @@ def analyze_text(html):
   else:
       metrics['noun_cluster_ratio'] = 0
 
+  # find and count long noun phrases
+  data['long_noun_phrases'] = [None] * len(doc)
+  noun_phrase_count = 0
+  long_noun_phrase_count = 0
+  for noun_phrase in doc.noun_chunks:
+    noun_phrase_count += 1
+    phrase_len = sum([1 for token in noun_phrase if not \
+                 (token.pos_ in ['PUNCT', 'DET', 'ADP', 'CCONJ', 'PART'])])
+    if phrase_len >= 5:
+      long_noun_phrase_count += 1
+      data['long_noun_phrases'][noun_phrase.start:noun_phrase.end] = \
+          [long_noun_phrase_count] * len(noun_phrase)
+  if noun_phrase_count > 0:
+    metrics['long_noun_phrase_ratio'] = long_noun_phrase_count / noun_phrase_count
+  else:
+    metrics['long_noun_phrase_ratio'] = 0
+
   # find and count passive voice cases
   data['passive_voice_cases'] = [None] * len(doc)
   passive_voice_count = 0
@@ -460,18 +498,18 @@ def analyze_text(html):
   word_freq = {}
   bigram_freq = {}
   trigram_freq = {}
-  lemmas = [data['lemmas'][i] for i in word2token_map]
+  lemmas = [data['base_lemmas'][i] for i in word2token_map]
   for idx, word in enumerate(lemmas[:-2]):
     if word in word_freq:
       word_freq[word] += 1
     else:
       word_freq[word] = 1
-    mask = word + ',' + lemmas[idx+1]
+    mask = word + '|' + lemmas[idx+1]
     if mask in bigram_freq:
       bigram_freq[mask] += 1
     else:
       bigram_freq[mask] = 1
-    mask = word + ',' + lemmas[idx+1] + ',' + lemmas[idx+2]
+    mask = word + '|' + lemmas[idx+1] + '|' + lemmas[idx+2]
     if mask in trigram_freq:
       trigram_freq[mask] += 1
     else:
@@ -484,7 +522,7 @@ def analyze_text(html):
     word_freq[lemmas[-1]] += 1
   else:
     word_freq[lemmas[-1]] = 1
-  mask = lemmas[-2] + ',' + lemmas[-1]
+  mask = lemmas[-2] + '|' + lemmas[-1]
   if mask in bigram_freq:
     bigram_freq[mask] += 1
   else:
@@ -500,7 +538,7 @@ def analyze_text(html):
     metrics['word_freq'] = []
   bigram_freq_list = []
   for mask, freq in bigram_freq.iteritems():
-    w1, w2 = mask.split(',')
+    w1, w2 = mask.split('|')
     if (freq > 1) and (w1 not in dict_stop_words) and (w2 not in dict_stop_words):
       bigram_freq_list.append([[w1, w2], freq])
   bigram_freq_list.sort(reverse=True, key=lambda x: x[1])
@@ -510,7 +548,7 @@ def analyze_text(html):
     metrics['bigram_freq'] = []
   trigram_freq_list = []
   for mask, freq in trigram_freq.iteritems():
-    w1, w2, w3 = mask.split(',')
+    w1, w2, w3 = mask.split('|')
     if (freq > 1):
       trigram_freq_list.append([[w1, w2, w3], freq])
   trigram_freq_list.sort(reverse=True, key=lambda x: x[1])

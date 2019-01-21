@@ -10,10 +10,11 @@ with open(os.path.join(os.environ.get('NLP_DATA'), 'word-frequencies-pos')) as f
   dict_word_freq_lines = [line.split(',') for line in dict_word_freq_lines]
   dict_word_freq = {}
   for word, pos, freq in dict_word_freq_lines:
-    if word in dict_word_freq:
-      dict_word_freq[word] += float(freq)
+    lower_word = word.lower()
+    if lower_word in dict_word_freq:
+      dict_word_freq[lower_word] += float(freq)
     else:
-      dict_word_freq[word] = float(freq)
+      dict_word_freq[lower_word] = float(freq)
 
 ### Frequency split by part of speech - cannot map to spaCy "pos_" yet
 # pos_map = {

@@ -55,12 +55,18 @@ $(function(){
         $("[data-metric='filler-words']").data("title", '<div class="tooltip-text">unnecessary words typical for spoken language</div>');
         $("[data-metric='nominalizations']").data("title", '<div class="tooltip-text">complex nouns extended from shorter verbs, adjectives or nouns</div>');
         $("[data-metric='noun-clusters']").data("title", '<div class="tooltip-text">three or more consecutive nouns (and, possibly, "of")</div>');
+        $("[data-metric='long-noun-phrases']").data("title", '<div class="tooltip-text">noun phrases with 5 or more non-trivial words</div>');
         $("[data-metric='long-sents']").data("title", '<div class="tooltip-text">&ge;40 words</div>');
         $("[data-metric='short-sents']").data("title", '<div class="tooltip-text">&le;6 words</div>');
+        $("[data-metric='fragment']").data("title", '<div class="tooltip-text">incomplete sentences without a predicate</div>');
+        $("[data-metric='many-clauses']").data("title", '<div class="tooltip-text">subjects and predicates of sentences with &ge;4 clauses</div>');
+        $("[data-metric='late-predicates']").data("title", '<div class="tooltip-text">predicates >10 words deep into sentences</div>');
+        $("[data-metric='detached-subjects']").data("title", '<div class="tooltip-text">subjects and predicates >5 words apart</div>');
         $("[data-metric='entity-substitutions']").data("title", '<div class="tooltip-text">pronouns and vague determiners</div>');
         $("[data-metric='modals']").data("title", '<div class="tooltip-text">verb modifiers signifying ability or necessity</div>');
         $("[data-metric='rare-words']").data("title", '<div class="tooltip-text">not among 5000 most frequent English words</div>');
         $("[data-metric='sents']").data("title", '<div class="tooltip-text">highlighting of the first word in each sentence</div>');
+        $("[data-metric='predicate-depth']").data("title", '<div class="tooltip-text">average position number of a main predicate from the beginning of a sentence</div>');
         $("[data-metric='vocabulary-size']").data("title", '<div class="tooltip-text">number of different word lemmas</div>');
         $("[data-metric='readability']").data("title", '<div class="tooltip-text">comprehension level corresponding to school grade</div>');
         $("[data-metric='declar-sents']").data("title", '<div class="tooltip-text">ending with "." or "..."</div>');
@@ -296,6 +302,8 @@ $(function(){
         $("#word-count").text(metrics.word_count.toString());
         $("#vocabulary-size").text(metrics.vocabulary_size.toString());
         $("#sentence-count").text(metrics.sentence_count.toString());
+        $("#clauses-per-sentence").text((Math.round(metrics.clauses_per_sentence * 10) / 10).toString());
+        $("#predicate-depth").text((Math.round(metrics.predicate_depth * 10) / 10).toString());
         $("#words-per-sentence").text((Math.round(metrics.words_per_sentence * 10) / 10).toString());
         if (metrics.std_of_words_per_sentence != -1) {
             $("#std-of-words-per-sentence").text(" \xB1 " + (Math.round(metrics.std_of_words_per_sentence * 10) / 10).toString());
@@ -307,6 +315,14 @@ $(function(){
         $("#declarative-ratio").text((Math.round(metrics.declarative_ratio * 1000) / 10).toString() + "%");
         $("#interrogative-ratio").text((Math.round(metrics.interrogative_ratio * 1000) / 10).toString() + "%");
         $("#exclamative-ratio").text((Math.round(metrics.exclamative_ratio * 1000) / 10).toString() + "%");
+        $("#fragment-ratio").text((Math.round(metrics.fragment_ratio * 1000) / 10).toString() + "%");
+        $("#many-clauses-ratio").text((Math.round(metrics.many_clauses_ratio * 1000) / 10).toString() + "%");
+        $("#late-predicates-ratio").text((Math.round(metrics.late_predicates_ratio * 1000) / 10).toString() + "%");
+        $("#detached-subjects-ratio").text((Math.round(metrics.detached_subjects_ratio * 1000) / 10).toString() + "%");
+        $("#simple-ratio").text((Math.round(metrics.simple_ratio * 1000) / 10).toString() + "%");
+        $("#complex-ratio").text((Math.round(metrics.complex_ratio * 1000) / 10).toString() + "%");
+        $("#compound-ratio").text((Math.round(metrics.compound_ratio * 1000) / 10).toString() + "%");
+        $("#complex-compound-ratio").text((Math.round(metrics.complex_compound_ratio * 1000) / 10).toString() + "%");
         $("#stopword-ratio").text((Math.round(metrics.stopword_ratio * 1000) / 10).toString() + "%");
         if (metrics.syllables_per_word > 0) {
             $("#syllables-per-word").text((Math.round(metrics.syllables_per_word * 10) / 10).toString());
@@ -330,9 +346,10 @@ $(function(){
         $("#weak-verb-ratio").text((Math.round(metrics.weak_verb_ratio * 1000) / 10).toString() + "%");
         $("#entity-substitution-ratio").text((Math.round(metrics.entity_substitution_ratio * 1000) / 10).toString() + "%");
         $("#filler-ratio").text((Math.round(metrics.filler_ratio * 1000) / 10).toString() + "%");
-        $("#negation-ratio").text((Math.round(metrics.negation_ratio * 10) / 10).toString());
+        $("#negation-ratio").text((Math.round(metrics.negation_ratio * 100) / 100).toString());
         $("#noun-cluster-ratio").text((Math.round(metrics.noun_cluster_ratio * 1000) / 10).toString() + "%");
-        $("#passive-voice-ratio").text((Math.round(metrics.passive_voice_ratio * 10) / 10).toString());
+        $("#long-noun-phrase-ratio").text((Math.round(metrics.long_noun_phrase_ratio * 1000) / 10).toString() + "%");
+        $("#passive-voice-ratio").text((Math.round(metrics.passive_voice_ratio * 100) / 100).toString());
         $("#rare-word-ratio").text((Math.round(metrics.rare_word_ratio * 1000) / 10).toString() + "%");
         if (metrics.word_freq.length > 0) {
             var freqWordHtml = "";
@@ -387,6 +404,22 @@ $(function(){
                         mask.push(i);
                         currSent = tokens.sentence_numbers[i];
                     }
+                }
+                break;
+
+            case "clauses-per-sentence":
+                for (var i=0; i<tokens.values.length; i++) {
+                  if (tokens.principal_parts[i]) {
+                    mask.push(i);
+                  }
+                }
+                break;
+
+            case "predicate-depth":
+                for (var i=0; i<tokens.values.length; i++) {
+                  if (tokens.independent_principal_parts[i] == 'predicate') {
+                    mask.push(i);
+                  }
                 }
                 break;
 
@@ -562,6 +595,53 @@ $(function(){
                 }
                 break;
 
+            case "fragment":
+            case "simple":
+            case "complex":
+            case "compound":
+            case "complex-compound":
+                var span = [0, null];
+                var validSent = (tokens.sentence_types[0]==metric);
+                for (var i=1; i<tokens.sentence_numbers.length; i++) {
+                  if (tokens.sentence_numbers[i] != tokens.sentence_numbers[i-1]) {
+                    span[1] = i - 1;
+                    if (validSent) {
+                      mask.push(span);
+                    }
+                    span = [i, null];
+                    validSent = (tokens.sentence_types[i]==metric);
+                  }
+                }
+                span[1] = tokens.sentence_numbers.length - 1;
+                if (validSent) {
+                  mask.push(span);
+                }
+                break;
+
+            case "many-clauses":
+                for (var i=0; i<tokens.values.length; i++) {
+                  if (tokens.clause_heavy_sentences[i]) {
+                    mask.push(i);
+                  }
+                }
+                break;
+
+            case "late-predicates":
+                for (var i=0; i<tokens.values.length; i++) {
+                  if (tokens.late_predicates[i]) {
+                    mask.push(i);
+                  }
+                }
+                break;
+
+            case "detached-subjects":
+                for (var i=0; i<tokens.values.length; i++) {
+                  if (tokens.detached_subjects[i]) {
+                    mask.push(i);
+                  }
+                }
+                break;
+
             case "nominalizations":
                 for (var i=0; i<tokens.values.length; i++) {
                     if (tokens.nominalizations[i]) {
@@ -617,6 +697,24 @@ $(function(){
                             clusterNum = tokens.noun_clusters[i];
                         }
                     }
+                }
+                break;
+
+            case "long-noun-phrases":
+                var span = [null, null];
+                var phraseNum = 0;
+                for (var i=0; i<tokens.values.length; i++) {
+                  if (tokens.long_noun_phrases[i] != phraseNum) {
+                    if (span[0] != null) {
+                      span[1] = i-1;
+                      mask.push(span);
+                      span = [null, null];
+                    }
+                    if (tokens.long_noun_phrases[i]) {
+                      span[0] = i;
+                      phraseNum = tokens.long_noun_phrases[i];
+                    }
+                  }
                 }
                 break;
 
