@@ -82,11 +82,16 @@ $(function(){
     $("[data-metric='detached-subjects']").data("title", '<div class="tooltip-text">subjects and predicates >5 words apart</div>');
     $("[data-metric='vocabulary-size']").data("title", '<div class="tooltip-text">number of different word lemmas</div>');
     $("[data-metric='sents']").data("title", '<div class="tooltip-text">highlighting of the first word in each sentence</div>');
-    $("[data-metric='predicate-depth']").data("title", '<div class="tooltip-text">average position number of a main predicate from the beginning of a sentence</div>');
+    $("[data-metric='clauses-per-sentence']").data("title", '<div class="tooltip-text">highlighting of subjects and predicates in each clause</div>');
+    $("[data-metric='predicate-depth']").data("title", '<div class="tooltip-text">average position number of a predicate from the beginning of a sentence</div>');
     $("[data-metric='readability']").data("title", '<div class="tooltip-text">comprehension level corresponding to school grade</div>');
     $("[data-metric='declar-sents']").data("title", '<div class="tooltip-text">ending with "." or "..."</div>');
     $("[data-metric='inter-sents']").data("title", '<div class="tooltip-text">ending with "?"</div>');
     $("[data-metric='exclam-sents']").data("title", '<div class="tooltip-text">ending with "!"</div>');
+    $("[data-metric='simple']").data("title", '<div class="tooltip-text">containing one independent clause and no dependent clauses</div>');
+    $("[data-metric='complex']").data("title", '<div class="tooltip-text">containing one independent clause and one or more dependent clauses</div>');
+    $("[data-metric='compound']").data("title", '<div class="tooltip-text">containing two or more independent clauses and no dependent clauses</div>');
+    $("[data-metric='complex-compound']").data("title", '<div class="tooltip-text">containing two or more independent clauses and one or more dependent clauses</div>');
     $("[data-metric='stopwords']").data("title", '<div class="tooltip-text">most common words not carrying text specific information</div>');
     $("#editing-metrics-link").data("title", '<div class="tooltip-text">more information about metrics for editing</div>');
     $("#general-metrics-link").data("title", '<div class="tooltip-text">more information about general metrics</div>');

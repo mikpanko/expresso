@@ -13,7 +13,7 @@
                 <h2 id="editing-metrics">Metrics for editing</h2>
 
                 <h3>Synonyms</h3>
-                <p>Words with similar meaning. Use synonyms to find the most precise word for your idea or avoid excessive repetition. Synonyms on Expresso are pulled from <a href="http://wordnet.princeton.edu/" target="_blank">WordNet corpus</a>. Up to ten synonyms of the same part of speech are displayed for each word.</p>
+                <p>Words with similar meaning. Use synonyms to find the most precise word for your idea or avoid excessive repetition. Synonyms on Expresso are pulled from <a href="https://wordnet.princeton.edu/" target="_blank">WordNet corpus</a>. Up to ten synonyms of the same part of speech are displayed for each word.</p>
                 <p>Examples: <i>to show</i> &#8212; <i>to point</i>, <i>to present</i>, <i>to indicate</i>, <i>to establish</i>.</p>
 
                 <h3>Weak verbs</h3>
@@ -41,10 +41,15 @@
                 <p>Units of measurement: number per sentence.</p>
                 <p>Examples: <i>not</i>, <i>no</i>, <i>nothing</i>, <i>to undo</i>, <i>to misspell</i>.</p>
 
-                <h3>Noun clusters</h3>
+                <h3>Clustered nouns</h3>
                 <p>Three or more consecutive nouns with, possibly, “of” in between. Such clusters are often hard to comprehend. If so, mix them with strong verbs and adjectives.</p>
                 <p>Units of measurement: percent of all nouns.</p>
                 <p>Examples: <i>automated motor starting circuit</i>, <i>penicillin skin test result group</i>.</p>
+
+                <h3>Long noun phrases</h3>
+                <p>Syntactic <a href="https://en.wikipedia.org/wiki/Noun_phrase" target="_blank">phrases</a> with nouns at the head, which consist of 5 or more non-trivial words. Long noun phrases can be hard to understand. If so, drop non-essential descriptors or break into several phrases. Expresso finds noun phrases using <a href="https://spacy.io/usage/linguistic-features#dependency-parse" target="_blank">spaCy syntactic dependency parser</a>.</p>
+                <p>Units of measurement: percent of all noun phrases.</p>
+                <p>Example: <i>my beautiful big excessively cheerful and friendly dog</i>.</p>
 
                 <h3>Passive voice</h3>
                 <p>Sentences and clauses where the subject is the receiver of the main action. Often, sentences in passive voice sound weak and can be confusing. If so, rephrase the sentence in active voice.</p>
@@ -71,6 +76,27 @@
                 <p>Units of measurement: percent of all sentences.</p>
                 <p>Example: <i>The day is warm.</i></p>
 
+                <h3>Fragments</h3>
+                <p>Incomplete sentences lacking a predicate. Fragments can be a powerful tool for setting tone and communicating feelings. They can also just be syntactic errors confusing to readers. If so, rephrase to add a predicate. Expresso finds fragments using <a href="https://spacy.io/usage/linguistic-features#dependency-parse" target="_blank">spaCy syntactic dependency parser</a>.</p>
+                <p>Units of measurement: percent of all sentences.</p>
+                <p>Examples: <i>Wow!</i> <i>A nice day.</i></p>
+
+                <h3>Clause-heavy sentences</h3>
+                <p>Sentences with 4 or more <a href="https://en.wikipedia.org/wiki/Clause" target="_blank">clauses</a>. Clause-heavy sentences might be hard to parse for readers. If so, break them down into several sentences with fewer clauses. Expresso finds clauses using <a href="https://spacy.io/usage/linguistic-features#dependency-parse" target="_blank">spaCy syntactic dependency parser</a>.</p>
+                <p>Units of measurement: percent of all sentences.</p>
+                <p>Example: <i>The dog lived in the garden, but the cat, who was smarter, lived inside the house, which the dog was afraid to enter.</i></p>
+
+                <h3>Late predicates</h3>
+                <p>Predicates, which are more than 10 words deep into a sentence. We understand sentences by first finding a main predicate and then organizing other words according to their relationship to it. When a predicate comes late into a sentence, readers need to hold all previous words in working memory, which can be hard and confusing.
+                    If so, reorganize your sentence to move the predicate up. Expresso finds predicates using <a href="https://spacy.io/usage/linguistic-features#dependency-parse" target="_blank">spaCy syntactic dependency parser</a>.</p>
+                <p>Units of measurement: percent of all sentences.</p>
+                <p>Example: <i>Alice, thinking it was very like having a game of play with a cart-horse, and expecting every moment to be trampled under its feet, ran round the thistle again.</i> &mdash; Lewis Carroll, Alice's Adventures in Wonderland</p>
+
+                <h3>Detached subjects</h3>
+                <p>Subjects, which are more than 5 words apart from corresponding predicates. Sentences constructed in this way can be hard to parse. If so, reorganize them to move subjects and predicates closer together. Expresso finds subjects and predicates using <a href="https://spacy.io/usage/linguistic-features#dependency-parse" target="_blank">spaCy syntactic dependency parser</a>.</p>
+                <p>Units of measurement: percent of all sentences.</p>
+                <p>Example: <i>Alice, thinking it was very like having a game of play with a cart-horse, and expecting every moment to be trampled under its feet, ran round the thistle again.</i> &mdash; Lewis Carroll, Alice's Adventures in Wonderland</p>
+
                 <h3>Frequent words</h3>
                 <p>The most frequent words in the text excluding <a href="/metrics#stopwords">stopwords</a> (described below). When clustered they can sound repetitive. If so, replace some of them with synonyms.</p>
                 <p>Units of measurement: number of occurrences.</p>
@@ -89,23 +115,34 @@
                 <h2 id="general-metrics">General metrics</h2>
 
                 <h3>Vocabulary size</h3>
-                <p>Number of different word stems in the text. Expresso finds stems of words via <a href="http://nltk.googlecode.com/svn-/trunk/doc/howto/tokenize.html" target="_blank">NLTK Porter word tokenizer</a>.</p>
+                <p>Number of different word <a href="https://en.wikipedia.org/wiki/Lemma_(morphology)" target="_blank">lemmas</a> in the text. Expresso finds lemmas of words via <a href="https://spacy.io" target="_blank">spaCy</a> English lemmatizer.</p>
 
                 <h3>Sentences</h3>
                 <p>Number of sentences in the text. This metric highlights the first word in each sentence to easily see the pattern of sentence lengths.</p>
+
+                <h3>Clauses per sentence</h3>
+                <p>Average number of <a href="https://en.wikipedia.org/wiki/Clause" target="_blank">clauses</a> per sentence. This metric highlights subjects and predicates of all clauses. Expresso finds clauses using <a href="https://spacy.io/usage/linguistic-features#dependency-parse" target="_blank">spaCy syntactic dependency parser</a>.</p>
+
+                <h3>Predicate depth per sentence</h3>
+                <p>Average position number of predicates from the beginning of a sentence. This metric highlights predicates of independent clauses in all sentences. Expresso finds predicates using <a href="https://spacy.io/usage/linguistic-features#dependency-parse" target="_blank">spaCy syntactic dependency parser</a>.</p>
+                <p>Units of measurement: words from the beginning of a sentence.</p>
 
                 <h3>Syllables per word</h3>
                 <p>Average number of syllables per word in the text. Expresso breaks words into syllables using <a href="http://www.speech.cs.cmu.edu/cgi-bin/cmudict" target="_blank">Carnegie Mellon University Pronouncing Dictionary</a>.</p>
 
                 <h3>Readability grade</h3>
-                <p>Comprehension level roughly corresponding to an American school grade. Expresso computes it using <a href="http://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_Readability_Test" target="_blank">Flesch–Kincaid Grade Level formula</a>. The grade is given only to texts with 100 or more words.</p>
+                <p>Comprehension level roughly corresponding to an American school grade. Expresso computes it using <a href="https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_Readability_Test" target="_blank">Flesch–Kincaid Grade Level formula</a>. The grade is given only to texts with 100 or more words.</p>
 
                 <h3>Parts of speech</h3>
-                <p>Words of a particular part of speech in the text. Expresso puts all words into one of six categories: nouns, pronouns, verbs, adjectives, adverbs and other parts of speech. This categorization is done via default <a href="http://nltk.org/book/ch05.html" target="_blank">NLTK part-of-speech tagger</a>.</p>
+                <p>Words of a particular part of speech in the text. Expresso puts all words into one of six categories: nouns, pronouns, verbs, adjectives, adverbs and other parts of speech. This categorization is done via <a href="https://spacy.io/usage/linguistic-features#section-pos-tagging" target="_blank">spaCy part-of-speech tagger</a>.</p>
                 <p>Units of measurement: percent of all words.</p>
 
+                <h3>Sentence types by clause structure</h3>
+                <p>Based on their <a href="https://en.wikipedia.org/wiki/Sentence_clause_structure" target="_blank">clause structure</a> sentences are classified into several types: simple, complex, compound and complex-compound.</p>
+                <p>Units of measurement: percent of all sentences.</p>
+
                 <h3 id="stopwords">Stopwords</h3>
-                <p>Most common words not carrying text-specific information. Expresso finds them using <a href="http://nltk.org/nltk_data/" target="_blank">NLTK Stopwords Corpus</a>.</p>
+                <p>Most common words not carrying text-specific information.</p>
                 <p>Units of measurement: percent of all words.</p>
                 <p>Examples: <i>it</i>, <i>this</i>, <i>the</i>, <i>up</i>, <i>will</i>.</p>
 
