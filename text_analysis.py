@@ -5,7 +5,6 @@ import re
 from bs4 import BeautifulSoup
 from numpy import std
 import spacy
-import time
 
 # pre-load and pre-compile required variables and methods
 nlp = spacy.load('en_core_web_sm')
@@ -274,13 +273,13 @@ def analyze_text(html):
     if sents_clauses[idx] >= 4:
       data['clause_heavy_sentences'][s1:s2] = [(i != None) for i in data['principal_parts'][s1:s2]]
       metrics['many_clauses_ratio'] += 1
-    if pred_depth > 10:
+    if pred_depth > 15:
       data['late_predicates'][sents_start_idx[idx]+pred_idx] = True
       metrics['late_predicates_ratio'] += 1
     if 'subject' in syntax_mask:
       subj_idx = syntax_mask.index('subject')
       subj_depth = sum([1 for token in sent[:subj_idx] if is_word(token)])
-      if (pred_depth - subj_depth > 5):
+      if (pred_depth - subj_depth > 8):
         data['detached_subjects'][sents_start_idx[idx]+pred_idx] = True
         data['detached_subjects'][sents_start_idx[idx]+subj_idx] = True
         metrics['detached_subjects_ratio'] += 1

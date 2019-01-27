@@ -60,8 +60,8 @@ $(function(){
         $("[data-metric='short-sents']").data("title", '<div class="tooltip-text">&le;6 words</div>');
         $("[data-metric='fragment']").data("title", '<div class="tooltip-text">incomplete sentences without a predicate</div>');
         $("[data-metric='many-clauses']").data("title", '<div class="tooltip-text">subjects and predicates of sentences with &ge;4 clauses</div>');
-        $("[data-metric='late-predicates']").data("title", '<div class="tooltip-text">predicates >10 words deep into sentences</div>');
-        $("[data-metric='detached-subjects']").data("title", '<div class="tooltip-text">subjects and predicates >5 words apart</div>');
+        $("[data-metric='late-predicates']").data("title", '<div class="tooltip-text">predicates >15 words deep into sentences</div>');
+        $("[data-metric='detached-subjects']").data("title", '<div class="tooltip-text">subjects and predicates >8 words apart</div>');
         $("[data-metric='entity-substitutions']").data("title", '<div class="tooltip-text">pronouns and vague determiners</div>');
         $("[data-metric='modals']").data("title", '<div class="tooltip-text">verb modifiers signifying ability or necessity</div>');
         $("[data-metric='rare-words']").data("title", '<div class="tooltip-text">not among 5000 most frequent English words</div>');

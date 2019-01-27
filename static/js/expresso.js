@@ -78,8 +78,8 @@ $(function(){
     $("[data-metric='short-sents']").data("title", '<div class="tooltip-text">&le;6 words</div>');
     $("[data-metric='fragment']").data("title", '<div class="tooltip-text">incomplete sentences without a predicate</div>');
     $("[data-metric='many-clauses']").data("title", '<div class="tooltip-text">subjects and predicates of sentences with &ge;4 clauses</div>');
-    $("[data-metric='late-predicates']").data("title", '<div class="tooltip-text">predicates >10 words deep into sentences</div>');
-    $("[data-metric='detached-subjects']").data("title", '<div class="tooltip-text">subjects and predicates >5 words apart</div>');
+    $("[data-metric='late-predicates']").data("title", '<div class="tooltip-text">predicates >15 words deep into sentences</div>');
+    $("[data-metric='detached-subjects']").data("title", '<div class="tooltip-text">subjects and predicates >8 words apart</div>');
     $("[data-metric='vocabulary-size']").data("title", '<div class="tooltip-text">number of different word lemmas</div>');
     $("[data-metric='sents']").data("title", '<div class="tooltip-text">highlighting of the first word in each sentence</div>');
     $("[data-metric='clauses-per-sentence']").data("title", '<div class="tooltip-text">highlighting of subjects and predicates in each clause</div>');
